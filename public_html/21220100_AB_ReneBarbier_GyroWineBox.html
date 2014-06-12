@@ -420,7 +420,7 @@
                         
                         // Calculating size of faces
                         //Rotate the face to get a uniform starting point
-                        
+                        //console.log("Before: X: " + vertices[faces[i].a].x + ", Y: " + vertices[faces[i].a].y , ", Z: " + vertices[faces[i].a].z);
                         vertices[faces[i].a].applyEuler(rotationOfFaces[i]);
                         vertices[faces[i].b].applyEuler(rotationOfFaces[i]);
                         vertices[faces[i].c].applyEuler(rotationOfFaces[i]);
@@ -442,7 +442,7 @@
                             vertices[faces[i].b].applyEuler(rotation);
                             vertices[faces[i].c].applyEuler(rotation);
                         }
-                        
+                        //console.log("After: X: " + vertices[faces[i].a].x + ", Y: " + vertices[faces[i].a].y , ", Z: " + vertices[faces[i].a].z);
                         //Convert to web coord system
                         //centreOfFaces[i].applyEuler(rotation);
                         //centreOfFaces[i].y *= -1;
@@ -503,16 +503,22 @@
                         //element.style.background = new THREE.Color( Math.random() * 0xffffff ).getStyle();
 
                         var object = new THREE.CSS3DObject( element );
-                        object.position.x = centreOfFaces[i].x;
-                        object.position.y = centreOfFaces[i].y;
-                        object.position.z = centreOfFaces[i].z;
+                        
+                        
+                        object.up = new THREE.Vector3(0,1,0);
                         //object.useQuaternion = true;
                         //object.rotation.x = 0;
                         //object.rotation.y = 0;
                         //object.rotation.z = 0;
                         //object.quaternion = quats[i];
-                        object.matrix.setRotationFromQuaternion(quats[i]);
+                        //console.log("quat: " + quats[i].x + ", " + quats[i].y + ", " + quats[i].z + ", " + quats[i].w);
+                        var mat = new THREE.Matrix4();
+                        object.applyMatrix(mat.makeRotationFromQuaternion(quats[i]));
                         //object.lookAt(faces[i].normal.add(object.position));
+                        
+                        object.position.x = centreOfFaces[i].x;
+                        object.position.y = centreOfFaces[i].y;
+                        object.position.z = centreOfFaces[i].z;
                         
                         //object.rotation.x = -rotationOfFaces[i].x;
                         //object.rotation.y = -rotationOfFaces[i].y;
