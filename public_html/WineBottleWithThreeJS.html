@@ -53,6 +53,8 @@
                 var camera;
                 var renderer;
                 
+                var scene2, renderer2;
+                
                 function p212201ImgLoaded () {
                     if (p212201LoadedImages==0) {
                         var node = document.getElementById("p212201_ad_container");
@@ -297,7 +299,7 @@
                     //jsonLoader.load("/WineBottleProject/Model/Vinflaska/lowpolyG.json", modelLoaded);
                     //jsonLoader.load("/WineBottleProject/Model/Vinflaska/flaska.json", modelLoaded);
                     //jsonLoader.load("/WineBottleProject/Model/Vinflaska/lowpoly_obj.json", modelLoaded);
-                    objLoader.load("/WineBottleProject/Model/Vinflaska/lowpoly_obj.obj", modelLoaded);
+                    objLoader.load("/WineBottleProject/Model/Vinflaska/lowpoly_obj.obj", testFunc);
                 }
                 
                 var modelLoaded = function(geometry, materials) {
@@ -308,6 +310,19 @@
                     convertModel();
                 };
                 
+                var winWidth = 300;
+                var winHeight = 600;
+                
+                var texture = new THREE.Texture();
+
+                var loader = new THREE.ImageLoader(  );
+                loader.load( '/WineBottleProject/Model/Vinflaska/vinflaska_textur.jpg', function ( image ) {
+
+                        texture.image = image;
+                        texture.needsUpdate = true;
+
+                } );
+                
                 var testFunc = function( object ) {
                     model = object;
                     model.traverse( function ( child ) {
@@ -315,22 +330,22 @@
                             child.material.map = texture;
                         }
                     } );
+                    
                     convertModel();
                 };
                 
                 function convertModel() {
                     
                     //////////// TEST /////////////////
-                    
                     scene = new THREE.Scene();
-                    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+                    camera = new THREE.PerspectiveCamera( 45, winWidth / winHeight, 1, 10000 );
                     camera.position.set( 0, 500, 2000 );
                     
                     controls = new THREE.TrackballControls( camera );
                     
                     /////////////////////////////////
                     
-                    var faces = model.geometry.children[0].geometry.faces;
+                    var faces = model.children[0].geometry.faces;
                     
                     var loopLength = faces.length;
                     var scale = 100;
@@ -345,11 +360,11 @@
                     var rotateEuler = false;
                     
                     var vertices = [];
-                    for (var i = 0; i < model.geometry.children[0].geometry.vertices.length; i++) {
+                    for (var i = 0; i < model.children[0].geometry.vertices.length; i++) {
                         //Copying value instead of reference to not change original values later
-                        vertices[i] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[i].x, 
-                                                        model.geometry.children[0].geometry.vertices[i].y, 
-                                                        model.geometry.children[0].geometry.vertices[i].z);
+                        vertices[i] = new THREE.Vector3(model.children[0].geometry.vertices[i].x, 
+                                                        model.children[0].geometry.vertices[i].y, 
+                                                        model.children[0].geometry.vertices[i].z);
                         if(rotateEuler)
                             vertices[i].applyEuler(rotation);
                     }
@@ -364,8 +379,7 @@
                     var sizeOfFaces = [];
                     var quats = [];
                     var aCoord = new THREE.Vector2(), bCoord = new THREE.Vector2(), cCoord = new THREE.Vector2();
-                    var width = 300;
-                    var height = 300;
+                    
                     
                     var tempVec = new THREE.Vector2();
                     
@@ -375,8 +389,6 @@
                     image.onload = function() {
                     for (var i = 0; i < loopLength; i++) {
                         var picSize = new THREE.Vector2(image.width, image.height);
-                        if(rotateEuler)
-                            faces[i].normal.applyEuler(rotation);
                         
                         aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
                         bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
@@ -404,8 +416,8 @@
                         quaternion = quaternion.setFromUnitVectors(norm, tepm);
                         quats.push(quaternion2.setFromUnitVectors(tepm, norm));
                         //quaternion = quats[i];
-                        rotationOfFaces.push(new THREE.Euler());
-                        rotationOfFaces[i].setFromQuaternion(quaternion, "XYZ");
+                        //rotationOfFaces.push(new THREE.Euler());
+                        //rotationOfFaces[i].setFromQuaternion(quaternion, "XYZ");
                         tepm.applyQuaternion(quats[i]);
                         //console.log("Normal: X: " + norm.x + ", Y: " + norm.y , ", Z: " + norm.z);
                         //console.log("tepm + quat: X: " + tepm.x + ", Y: " + tepm.y , ", Z: " + tepm.z);
@@ -429,27 +441,27 @@
                         //Calculate size
                         sizeOfFaces.push(new THREE.Vector2((xMaxB - xMinB)*scale, (yMaxB - yMinB)*scale));
                         //reset vertices to orignal values
-                        vertices[faces[i].a] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[faces[i].a].x, 
-                                                                 model.geometry.children[0].geometry.vertices[faces[i].a].y, 
-                                                                 model.geometry.children[0].geometry.vertices[faces[i].a].z);
-                        vertices[faces[i].b] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[faces[i].b].x, 
-                                                                 model.geometry.children[0].geometry.vertices[faces[i].b].y, 
-                                                                 model.geometry.children[0].geometry.vertices[faces[i].b].z);
-                        vertices[faces[i].c] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[faces[i].c].x, 
-                                                                 model.geometry.children[0].geometry.vertices[faces[i].c].y, 
-                                                                 model.geometry.children[0].geometry.vertices[faces[i].c].z);
+                        vertices[faces[i].a] = new THREE.Vector3(model.children[0].geometry.vertices[faces[i].a].x, 
+                                                                 model.children[0].geometry.vertices[faces[i].a].y, 
+                                                                 model.children[0].geometry.vertices[faces[i].a].z);
+                        vertices[faces[i].b] = new THREE.Vector3(model.children[0].geometry.vertices[faces[i].b].x, 
+                                                                 model.children[0].geometry.vertices[faces[i].b].y, 
+                                                                 model.children[0].geometry.vertices[faces[i].b].z);
+                        vertices[faces[i].c] = new THREE.Vector3(model.children[0].geometry.vertices[faces[i].c].x, 
+                                                                 model.children[0].geometry.vertices[faces[i].c].y, 
+                                                                 model.children[0].geometry.vertices[faces[i].c].z);
                        
                         
                         // Adding img elements to html code
                     
                         //Calculating which pixels to cut between
-                        aCoord = new THREE.Vector2((picSize.x * model.geometry.children[0].geometry.faceVertexUvs[0][i][0].x), 
-                                                    picSize.y-(picSize.y * model.geometry.children[0].geometry.faceVertexUvs[0][i][0].y));
-                        bCoord = new THREE.Vector2((picSize.x * model.geometry.children[0].geometry.faceVertexUvs[0][i][1].x), 
-                                                    picSize.y-(picSize.y * model.geometry.children[0].geometry.faceVertexUvs[0][i][1].y));
-                        cCoord = new THREE.Vector2((picSize.x * model.geometry.children[0].geometry.faceVertexUvs[0][i][2].x), 
-                                                    picSize.y-(picSize.y * model.geometry.children[0].geometry.faceVertexUvs[0][i][2].y));
-                        var mCoord = new THREE.Vector2((aCoord.x+bCoord.x+cCoord.x)/3, (aCoord.y+bCoord.y+cCoord.y)/3)
+                        aCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][0].x), 
+                                                    picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][0].y));
+                        bCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][1].x), 
+                                                    picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][1].y));
+                        cCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][2].x), 
+                                                    picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][2].y));
+                        var mCoord = new THREE.Vector2((aCoord.x+bCoord.x+cCoord.x)/3, (aCoord.y+bCoord.y+cCoord.y)/3);
                         
                         //Canvas texture stuff
                         var texXMax = Math.max(aCoord.x, bCoord.x, cCoord.x) + padding;
@@ -500,13 +512,6 @@
                         var object = new THREE.CSS3DObject( element );
                         
                         
-                        object.up = new THREE.Vector3(0,1,0);
-                        //object.useQuaternion = true;
-                        //object.rotation.x = 0;
-                        //object.rotation.y = 0;
-                        //object.rotation.z = 0;
-                        //object.quaternion = quats[i];
-                        //console.log("quat: " + quats[i].x + ", " + quats[i].y + ", " + quats[i].z + ", " + quats[i].w);
                         var mat = new THREE.Matrix4();
                         object.applyMatrix(mat.makeRotationFromQuaternion(quats[i]));
                         //object.lookAt(faces[i].normal.add(object.position));
@@ -515,9 +520,6 @@
                         object.position.y = centreOfFaces[i].y;
                         object.position.z = centreOfFaces[i].z;
                         
-                        //object.rotation.x = -rotationOfFaces[i].x;
-                        //object.rotation.y = -rotationOfFaces[i].y;
-                        //object.rotation.z = -rotationOfFaces[i].z;
                         scene.add( object );
                         
                         
@@ -525,7 +527,7 @@
                     
                     ///////// TEST THREEJS CSS STUFF //////////////
                     renderer = new THREE.CSS3DRenderer();
-                    renderer.setSize( 300, 500 );
+                    renderer.setSize( winWidth, winHeight);
                     renderer.domElement.style.position = 'absolute';
                     renderer.domElement.style.top = 0;
                     document.getElementById("p212201_ad_container").appendChild( renderer.domElement );
