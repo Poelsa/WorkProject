@@ -15,6 +15,8 @@
             <!--<AdWineBox>-->
             <!-- Animated Ads, copyright Adssets AB, 2012 -->
             <script src="js/three.min.js"></script>
+            <script src="js/CSS3DRenderer.js"></script>
+            <script src="js/TrackballControls.js"></script>
             <script>
                 /**<AdScript>**/
                 var p212201IDLE_SPIN_INTERVAL = 4000;
@@ -44,6 +46,11 @@
                 
                 //Added by Joel
                 var model;
+                
+                var controls;
+                var scene;
+                var camera;
+                var renderer;
                 
                 function p212201ImgLoaded () {
                     if (p212201LoadedImages==0) {
@@ -299,13 +306,23 @@
                 
                 function convertModel() {
                     
+                    //////////// TEST /////////////////
+                    
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
+                    camera.position.set( 0, 500, 900 );
+                    
+                    controls = new THREE.TrackballControls( camera );
+                    
+                    /////////////////////////////////
+                    
                     var faces = model.geometry.faces;
                     
                     var loopLength = faces.length;
-                    var scale = 50;
+                    var scale = 100;
                     var offsetY = 400;
                     
-                    var padding = -1;
+                    var padding = 0;
                     
                     var flipY = 1;
                     var flipZ = 1;
@@ -327,7 +344,7 @@
                     
                     var rotationOfFaces = [];
                     var quaternion = new THREE.Quaternion();
-                    var internalRotationOfFaces = [];
+                    var quaternion2 = new THREE.Quaternion();
                     var sizeOfFaces = [];
                     
                     var aCoord = new THREE.Vector2(), bCoord = new THREE.Vector2(), cCoord = new THREE.Vector2();
@@ -368,6 +385,7 @@
                     //}
                     var norm, tempNorm, planeNorm;
                     var angleX, angleY, angleZ;
+                    var quats = [];
                     for (var i = 0; i < loopLength; i++) {
                         // Getting rotation of all faces
                     
@@ -375,8 +393,14 @@
                         //norm.normalize();
                         var tepm = new THREE.Vector3(0,0,1);
                         quaternion = quaternion.setFromUnitVectors(norm, tepm);
+                        quats.push(quaternion2.setFromUnitVectors(tepm, norm));
+                        //quaternion = quats[i];
                         rotationOfFaces.push(new THREE.Euler());
                         rotationOfFaces[i].setFromQuaternion(quaternion, "XYZ");
+                        tepm.applyQuaternion(quats[i]);
+                        //console.log("Normal: X: " + norm.x + ", Y: " + norm.y , ", Z: " + norm.z);
+                        //console.log("tepm + quat: X: " + tepm.x + ", Y: " + tepm.y , ", Z: " + tepm.z);
+                        
                         //norm = new THREE.Vector3(faces[i].normal.x, flipY*faces[i].normal.y, flipZ*faces[i].normal.z);
                         //Angle around the X axis
                         /*tempNorm = new THREE.Vector3(0, norm.y, norm.z);
@@ -421,7 +445,7 @@
                         
                         //Convert to web coord system
                         //centreOfFaces[i].applyEuler(rotation);
-                        centreOfFaces[i].y *= -1;
+                        //centreOfFaces[i].y *= -1;
                         
                         
                         // Adding img elements to html code
@@ -464,8 +488,41 @@
                         ctx.clip();
                         ctx.drawImage(image, 0, 0);
                         
+                        //////////////////////////////////////////////////////////////
+                        
+                        ////////////THIS IS THE THREE.JS CSSRENDERER TEST/////////////
+                        
+                        //////////////////////////////////////////////////////////////
                         
                         
+                        
+                        var element = document.createElement("img");
+                        element.src = canv.toDataURL();
+                        element.style.width = sizeOfFaces[i].x + 'px';
+                        element.style.height = sizeOfFaces[i].y + 'px';
+                        //element.style.background = new THREE.Color( Math.random() * 0xffffff ).getStyle();
+
+                        var object = new THREE.CSS3DObject( element );
+                        object.position.x = centreOfFaces[i].x;
+                        object.position.y = centreOfFaces[i].y;
+                        object.position.z = centreOfFaces[i].z;
+                        //object.useQuaternion = true;
+                        //object.rotation.x = 0;
+                        //object.rotation.y = 0;
+                        //object.rotation.z = 0;
+                        //object.quaternion = quats[i];
+                        object.matrix.setRotationFromQuaternion(quats[i]);
+                        //object.lookAt(faces[i].normal.add(object.position));
+                        
+                        //object.rotation.x = -rotationOfFaces[i].x;
+                        //object.rotation.y = -rotationOfFaces[i].y;
+                        //object.rotation.z = -rotationOfFaces[i].z;
+                        scene.add( object );
+                        
+                        
+                        
+                        ///////////////////////END OF TEST////////////////////////////
+                        /*
                         var img = document.createElement("img");
                         img.src = canv.toDataURL();
                         //Set attributes
@@ -527,9 +584,26 @@
                         console.log("--------------------------------------");
                         /////////////////////////////
                         
-                        
+                        */
                         
                     }
+                    
+                    ///////// TEST THREEJS CSS STUFF //////////////
+                    renderer = new THREE.CSS3DRenderer();
+                    renderer.setSize( 1000, 500 );
+                    renderer.domElement.style.position = 'absolute';
+                    renderer.domElement.style.top = 0;
+                    document.getElementById("p212201_ad_container").appendChild( renderer.domElement );
+                    
+                    animate();
+                    
+                };
+                
+                function animate() {
+                    requestAnimationFrame( animate );
+
+                    controls.update();
+                    renderer.render( scene, camera );
                 };
             }
                 
