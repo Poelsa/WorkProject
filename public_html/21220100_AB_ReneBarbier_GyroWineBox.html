@@ -17,6 +17,7 @@
             <script src="js/three.min.js"></script>
             <script src="js/CSS3DRenderer.js"></script>
             <script src="js/TrackballControls.js"></script>
+            <script src="js/OBJLoader.js"></script>
             <script>
                 /**<AdScript>**/
                 var p212201IDLE_SPIN_INTERVAL = 4000;
@@ -255,7 +256,7 @@
                 }
                 
                 function p212201LoadLink(){
-                    window.open("http://pliing.se/PliingAd/ExtLink?id=21220110&userAdId=**userAdId","_blank");
+                    //window.open("http://pliing.se/PliingAd/ExtLink?id=21220110&userAdId=**userAdId","_blank");
                 }
                 
                 function p212201DeviceOrientationHandler(gyroData){
@@ -291,16 +292,29 @@
                 
                 //Model loader stuff
                 function loadModel() {
-                    var jsonLoader = new THREE.JSONLoader();
-                    jsonLoader.load("/WineBottleProject/Model/Vinflaska/lowpolyG.json", modelLoaded);
+                    //var jsonLoader = new THREE.JSONLoader();
+                    var objLoader = new THREE.OBJLoader();
+                    //jsonLoader.load("/WineBottleProject/Model/Vinflaska/lowpolyG.json", modelLoaded);
                     //jsonLoader.load("/WineBottleProject/Model/Vinflaska/flaska.json", modelLoaded);
+                    //jsonLoader.load("/WineBottleProject/Model/Vinflaska/lowpoly_obj.json", modelLoaded);
+                    objLoader.load("/WineBottleProject/Model/Vinflaska/lowpoly_obj.obj", modelLoaded);
                 }
                 
                 var modelLoaded = function(geometry, materials) {
                     var material = new THREE.MeshFaceMaterial(materials);
                     model = new THREE.Mesh(geometry, material);
-                    //model = new THREE.Mesh(new THREE.TetrahedronGeometry(7), material);
+                    //model = new THREE.Mesh(new THREE.TetrahedronGeometry(5), material);
                     //model = new THREE.Mesh(new THREE.BoxGeometry(2,2,2), material);
+                    convertModel();
+                };
+                
+                var testFunc = function( object ) {
+                    model = object;
+                    model.traverse( function ( child ) {
+                        if ( child instanceof THREE.Mesh ) {
+                            child.material.map = texture;
+                        }
+                    } );
                     convertModel();
                 };
                 
@@ -310,13 +324,13 @@
                     
                     scene = new THREE.Scene();
                     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-                    camera.position.set( 0, 500, 900 );
+                    camera.position.set( 0, 500, 2000 );
                     
                     controls = new THREE.TrackballControls( camera );
                     
                     /////////////////////////////////
                     
-                    var faces = model.geometry.faces;
+                    var faces = model.geometry.children[0].geometry.faces;
                     
                     var loopLength = faces.length;
                     var scale = 100;
@@ -331,9 +345,11 @@
                     var rotateEuler = false;
                     
                     var vertices = [];
-                    for (var i = 0; i < model.geometry.vertices.length; i++) {
+                    for (var i = 0; i < model.geometry.children[0].geometry.vertices.length; i++) {
                         //Copying value instead of reference to not change original values later
-                        vertices[i] = new THREE.Vector3(model.geometry.vertices[i].x, flipY*model.geometry.vertices[i].y, flipZ*model.geometry.vertices[i].z);
+                        vertices[i] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[i].x, 
+                                                        model.geometry.children[0].geometry.vertices[i].y, 
+                                                        model.geometry.children[0].geometry.vertices[i].z);
                         if(rotateEuler)
                             vertices[i].applyEuler(rotation);
                     }
@@ -346,7 +362,7 @@
                     var quaternion = new THREE.Quaternion();
                     var quaternion2 = new THREE.Quaternion();
                     var sizeOfFaces = [];
-                    
+                    var quats = [];
                     var aCoord = new THREE.Vector2(), bCoord = new THREE.Vector2(), cCoord = new THREE.Vector2();
                     var width = 300;
                     var height = 300;
@@ -378,15 +394,8 @@
                         
                         centre = new THREE.Vector3(((xMax+xMin)/2)*scale, ((yMax+yMin)/2)*scale, ((zMax+zMin)/2)*scale);
                         centreOfFaces.push(centre);
-                    }
-                    
-                    //for (var i = 0; i < model.geometry.vertices.length; i++) {
-                    //    vertices[i].applyEuler(rotation);
-                    //}
-                    var norm, tempNorm, planeNorm;
-                    var angleX, angleY, angleZ;
-                    var quats = [];
-                    for (var i = 0; i < loopLength; i++) {
+                        
+                        
                         // Getting rotation of all faces
                     
                         norm = new THREE.Vector3(faces[i].normal.x, flipY*faces[i].normal.y, flipZ*faces[i].normal.z);
@@ -401,29 +410,16 @@
                         //console.log("Normal: X: " + norm.x + ", Y: " + norm.y , ", Z: " + norm.z);
                         //console.log("tepm + quat: X: " + tepm.x + ", Y: " + tepm.y , ", Z: " + tepm.z);
                         
-                        //norm = new THREE.Vector3(faces[i].normal.x, flipY*faces[i].normal.y, flipZ*faces[i].normal.z);
-                        //Angle around the X axis
-                        /*tempNorm = new THREE.Vector3(0, norm.y, norm.z);
-                        planeNorm = new THREE.Vector3(0,0,1); //Z-positive or Z-negative??
-                        angleX = tempNorm.angleTo(planeNorm); //Get angle to the plane
-                        //Angle around the Y axis
-                        tempNorm = new THREE.Vector3(norm.x, 0, norm.z);
-                        planeNorm = new THREE.Vector3(0,0,1);
-                        angleY = tempNorm.angleTo(planeNorm);
-                        //Angle around the Z axis
-                        tempNorm = new THREE.Vector3(norm.x, norm.y, 0);
-                        planeNorm = new THREE.Vector3(1,0,0);
-                        angleZ = tempNorm.angleTo(planeNorm);
-                        
-                        rotationOfFaces.push(new THREE.Euler(angleX, angleY, angleZ, "XYZ"));*/
-                        
-                        
                         // Calculating size of faces
                         //Rotate the face to get a uniform starting point
                         //console.log("Before: X: " + vertices[faces[i].a].x + ", Y: " + vertices[faces[i].a].y , ", Z: " + vertices[faces[i].a].z);
-                        vertices[faces[i].a].applyEuler(rotationOfFaces[i]);
-                        vertices[faces[i].b].applyEuler(rotationOfFaces[i]);
-                        vertices[faces[i].c].applyEuler(rotationOfFaces[i]);
+                        //vertices[faces[i].a].applyEuler(rotationOfFaces[i]);
+                        //vertices[faces[i].b].applyEuler(rotationOfFaces[i]);
+                        //vertices[faces[i].c].applyEuler(rotationOfFaces[i]);
+                        
+                        vertices[faces[i].a].applyQuaternion(quaternion);
+                        vertices[faces[i].b].applyQuaternion(quaternion);
+                        vertices[faces[i].c].applyQuaternion(quaternion);
                         
                         //Get bounds
                         var xMaxB = Math.max(vertices[faces[i].a].x, vertices[faces[i].b].x, vertices[faces[i].c].x);
@@ -433,27 +429,26 @@
                         //Calculate size
                         sizeOfFaces.push(new THREE.Vector2((xMaxB - xMinB)*scale, (yMaxB - yMinB)*scale));
                         //reset vertices to orignal values
-                        vertices[faces[i].a] = new THREE.Vector3(model.geometry.vertices[faces[i].a].x, flipY*model.geometry.vertices[faces[i].a].y, flipZ*model.geometry.vertices[faces[i].a].z);
-                        vertices[faces[i].b] = new THREE.Vector3(model.geometry.vertices[faces[i].b].x, flipY*model.geometry.vertices[faces[i].b].y, flipZ*model.geometry.vertices[faces[i].b].z);
-                        vertices[faces[i].c] = new THREE.Vector3(model.geometry.vertices[faces[i].c].x, flipY*model.geometry.vertices[faces[i].c].y, flipZ*model.geometry.vertices[faces[i].c].z);
-                        if(rotateEuler)
-                        {
-                            vertices[faces[i].a].applyEuler(rotation);
-                            vertices[faces[i].b].applyEuler(rotation);
-                            vertices[faces[i].c].applyEuler(rotation);
-                        }
-                        //console.log("After: X: " + vertices[faces[i].a].x + ", Y: " + vertices[faces[i].a].y , ", Z: " + vertices[faces[i].a].z);
-                        //Convert to web coord system
-                        //centreOfFaces[i].applyEuler(rotation);
-                        //centreOfFaces[i].y *= -1;
-                        
+                        vertices[faces[i].a] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[faces[i].a].x, 
+                                                                 model.geometry.children[0].geometry.vertices[faces[i].a].y, 
+                                                                 model.geometry.children[0].geometry.vertices[faces[i].a].z);
+                        vertices[faces[i].b] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[faces[i].b].x, 
+                                                                 model.geometry.children[0].geometry.vertices[faces[i].b].y, 
+                                                                 model.geometry.children[0].geometry.vertices[faces[i].b].z);
+                        vertices[faces[i].c] = new THREE.Vector3(model.geometry.children[0].geometry.vertices[faces[i].c].x, 
+                                                                 model.geometry.children[0].geometry.vertices[faces[i].c].y, 
+                                                                 model.geometry.children[0].geometry.vertices[faces[i].c].z);
+                       
                         
                         // Adding img elements to html code
                     
                         //Calculating which pixels to cut between
-                        aCoord = new THREE.Vector2((picSize.x * model.geometry.faceVertexUvs[0][i][0].x), picSize.y-(picSize.y * model.geometry.faceVertexUvs[0][i][0].y));
-                        bCoord = new THREE.Vector2((picSize.x * model.geometry.faceVertexUvs[0][i][1].x), picSize.y-(picSize.y * model.geometry.faceVertexUvs[0][i][1].y));
-                        cCoord = new THREE.Vector2((picSize.x * model.geometry.faceVertexUvs[0][i][2].x), picSize.y-(picSize.y * model.geometry.faceVertexUvs[0][i][2].y));
+                        aCoord = new THREE.Vector2((picSize.x * model.geometry.children[0].geometry.faceVertexUvs[0][i][0].x), 
+                                                    picSize.y-(picSize.y * model.geometry.children[0].geometry.faceVertexUvs[0][i][0].y));
+                        bCoord = new THREE.Vector2((picSize.x * model.geometry.children[0].geometry.faceVertexUvs[0][i][1].x), 
+                                                    picSize.y-(picSize.y * model.geometry.children[0].geometry.faceVertexUvs[0][i][1].y));
+                        cCoord = new THREE.Vector2((picSize.x * model.geometry.children[0].geometry.faceVertexUvs[0][i][2].x), 
+                                                    picSize.y-(picSize.y * model.geometry.children[0].geometry.faceVertexUvs[0][i][2].y));
                         var mCoord = new THREE.Vector2((aCoord.x+bCoord.x+cCoord.x)/3, (aCoord.y+bCoord.y+cCoord.y)/3)
                         
                         //Canvas texture stuff
@@ -526,77 +521,11 @@
                         scene.add( object );
                         
                         
-                        
-                        ///////////////////////END OF TEST////////////////////////////
-                        /*
-                        var img = document.createElement("img");
-                        img.src = canv.toDataURL();
-                        //Set attributes
-                        //Width & height
-                        img.setAttribute("width", sizeOfFaces[i].x.toFixed(3));
-                        img.setAttribute("height", sizeOfFaces[i].y.toFixed(3));
-                        //Position & rotation
-                        img.style.position = "absolute";
-                        //The following is to set the topleft corner, we will move the img with translate3d after
-                        img.style.top = (height/2 - (sizeOfFaces[i].y/2) - padding).toFixed(3) + "px"; 
-                        img.style.left = (width/2 - (sizeOfFaces[i].x/2) - padding).toFixed(3) + "px";
-                        
-                        //Maybe haxx something with rotate3d(x, y, z) (setting a point from which to rotate around)
-                        //Nope...
-                        
-                        var yPos = offsetY + centreOfFaces[i].y;
-                        //var yRot = new THREE.Vector3(faces[i].normal.x, faces[i].normal.y, faces[i].normal.z);
-                        var yRot = new THREE.Vector3(0,0,1);
-                        var yEul = new THREE.Euler(-rotationOfFaces[i].x + Math.PI/2,0,0,"XYZ");
-                        //yRot.applyEuler(new THREE.Euler(0,Math.PI/2,0,"XYZ"));
-                        yRot.applyEuler(yEul);
-                        
-                        img.style.webkitTransform = "translate3d(" + centreOfFaces[i].x.toFixed(3) + "px, " + yPos.toFixed(3) + "px, " + centreOfFaces[i].z.toFixed(3) + "px) " + 
-                                "rotateX(" + (-rotationOfFaces[i].x) + "rad)" +
-                                "rotateY(" + (-rotationOfFaces[i].y) + "rad)" +
-                                "rotateZ(" + (-rotationOfFaces[i].z) + "rad)";
-                                //"rotate3D("+(yRot.x)+", "+(-yRot.y)+", "+(-yRot.z)+"," + (-rotationOfFaces[i].y) + "rad)" +
-                                //"rotate3D("+(faces[i].normal.x)+", "+(-faces[i].normal.y)+", "+(-faces[i].normal.z)+"," + (-rotationOfFaces[i].z) + "rad)";
-                        
-                        //Other
-                        img.style.webkitTransformStyle =  "preserve-3d";
-                        img.setAttribute("z-index", 100+i);
-                        img.setAttribute("margin", "0");
-                        img.setAttribute("padding", "0");
-                        //add to id="p212201_cube" 
-                        document.getElementById("p212201_cube").appendChild(img);
-                        
-                        ////////DEBUG//////////
-                        
-                        var dummyNorm = new THREE.Vector3(0,0,1);
-                        dummyNorm.applyEuler(new THREE.Euler(-rotationOfFaces[i].x,0,0,"XYZ"));
-                        dummyNorm.applyEuler(new THREE.Euler(0,-rotationOfFaces[i].y,0,"XYZ"));
-                        dummyNorm.applyEuler(new THREE.Euler(0,0,-rotationOfFaces[i].z,"XYZ"));
-                        
-                        var st = window.getComputedStyle(img, null);
-                        var matrix = new WebKitCSSMatrix(st.getPropertyValue("-webkit-transform"));
-                        
-                        var tempRot = new THREE.Vector3(0,0,1);
-                        tempRot.applyEuler(rotationOfFaces[i]);
-                        console.log("THIS IS NUMBER " + i);
-                        console.log("Normal: X: " + norm.x + ", Y: " + norm.y , ", Z: " + norm.z);
-                        console.log("Angles: X:" + rotationOfFaces[i].x + ", Y: " + rotationOfFaces[i].y , ", Z: " + rotationOfFaces[i].z);
-                        console.log("Rotation applied: X: " + tempRot.x + ", Y: " + tempRot.y , ", Z: " + tempRot.z);
-                        console.log("DummyNorm: X: " + dummyNorm.x + ", Y: " + dummyNorm.y , ", Z: " + dummyNorm.z);
-                        console.log("Matrix stuff X: " + Math.acos(matrix.a));
-                        console.log("Matrix stuff Y: " + Math.acos(matrix.b));
-                        console.log("Matrix stuff Z: " + Math.acos(matrix.c));
-                        //console.log("yRot: X: " + yRot.x + ", Y: " + yRot.y , ", Z: " + yRot.z);
-                        console.log("--------------------------------------");
-                        /////////////////////////////
-                        
-                        */
-                        
                     }
                     
                     ///////// TEST THREEJS CSS STUFF //////////////
                     renderer = new THREE.CSS3DRenderer();
-                    renderer.setSize( 1000, 500 );
+                    renderer.setSize( 300, 500 );
                     renderer.domElement.style.position = 'absolute';
                     renderer.domElement.style.top = 0;
                     document.getElementById("p212201_ad_container").appendChild( renderer.domElement );
