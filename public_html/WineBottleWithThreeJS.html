@@ -416,10 +416,11 @@
                             console.log("3) color: BLUE");
                             console.log("-------------------------------------------------------------------");
                         }*/
-                        //var centre2 = ((aTri.add(bTri.add(cTri))).divideScalar(3)).multiplyScalar(scale);
+                        //var centre2 = ((aTri.clone().add(bTri.clone().add(cTri))).divideScalar(3)).multiplyScalar(scale);
                         
                         //This calculates the centre of the triangles bounding box
-                        
+                        // There be problem here somewhere...
+                        /*
                         var xMax = Math.max(aTri.x, bTri.x, cTri.x);
                         var xMin = Math.min(aTri.x, bTri.x, cTri.x);
                         var yMax = Math.max(aTri.y, bTri.y, cTri.y);
@@ -428,10 +429,10 @@
                         var zMin = Math.min(aTri.z, bTri.z, cTri.z);
                         
                         var centre = new THREE.Vector3(((xMax+xMin)/2)*scale, ((yMax+yMin)/2)*scale, ((zMax+zMin)/2)*scale);
-            
+            */
                         //centreOfFaces.push(centre);
                         //Normal arrows
-                        //scene.add( new THREE.ArrowHelper(faces[i].normal, centre2, 1, 0x884400));
+                        //scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,0,0), centre, 1, 0x884400));
                         
                         
                         
@@ -475,15 +476,15 @@
                         vertices[faces[i].b].applyAxisAngle(inWards, angle);
                         vertices[faces[i].c].applyAxisAngle(inWards, angle);
                         
-                        /*
+                        
                         
                         var aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
                         var bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
                         var cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
-                        
+                        /*
                         var centre2 = ((aTri.clone().add(bTri.clone().add(cTri))).divideScalar(3)).multiplyScalar(scale);
                         scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xAA00AA));
-                        
+                         
                         up.applyAxisAngle(inWards, angle);
                         //Wireframe test
                         //if(i==triangle)
@@ -514,6 +515,16 @@
                 
                         }
                         */
+                       
+                        var xMax = Math.max(aTri.x, bTri.x, cTri.x);
+                        var xMin = Math.min(aTri.x, bTri.x, cTri.x);
+                        var yMax = Math.max(aTri.y, bTri.y, cTri.y);
+                        var yMin = Math.min(aTri.y, bTri.y, cTri.y);
+                        var zMax = Math.max(aTri.z, bTri.z, cTri.z);
+                        var zMin = Math.min(aTri.z, bTri.z, cTri.z);
+                        
+                        var centre = new THREE.Vector3(((xMax+xMin)/2)*scale, ((yMax+yMin)/2)*scale, ((zMax+zMin)/2)*scale);
+                        //scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), centre, 1, 0x440088));
                         
                         //Get bounds
                         var xMaxB = Math.max(vertices[faces[i].a].x, vertices[faces[i].b].x, vertices[faces[i].c].x);
@@ -535,7 +546,11 @@
                                                                  model.children[0].geometry.vertices[faces[i].c].y, 
                                                                  model.children[0].geometry.vertices[faces[i].c].z);
             
-            
+                        centre.applyAxisAngle(inWards, -angle);
+                        centre.applyQuaternion(quaternion2);
+                        
+                        //scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), centre, 1, 0x884400));
+                        
                         ////////////////////////////////////////////////////////
                         //                   END PROBABILITY                  //
                         ////////////////////////////////////////////////////////
