@@ -372,10 +372,10 @@
                         var aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
                         var bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
                         var cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
-                        
+                        /*
                         var triangle = 55;
                         //Wireframe test
-                        /*if(i==triangle)
+                        if(i==triangle)
                         {
                             var from1 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
                             var to1 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
@@ -469,24 +469,29 @@
                         
                         var angle = up.angleTo(new THREE.Vector3(0,1,0));
                         var inWards = new THREE.Vector3(0,0,1);
+                        if(up.x < 0)
+                            angle = -angle;
                         vertices[faces[i].a].applyAxisAngle(inWards, angle);
                         vertices[faces[i].b].applyAxisAngle(inWards, angle);
                         vertices[faces[i].c].applyAxisAngle(inWards, angle);
                         
-                        
                         /*
+                        
                         var aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
                         var bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
                         var cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
                         
+                        var centre2 = ((aTri.clone().add(bTri.clone().add(cTri))).divideScalar(3)).multiplyScalar(scale);
+                        scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xAA00AA));
                         
+                        up.applyAxisAngle(inWards, angle);
                         //Wireframe test
                         //if(i==triangle)
                         {
                             //Up arrow
-                            console.log("upAngle: " + angle);
-                            scene.add( new THREE.ArrowHelper(up, aTri, 1, 0xAA00AA));
-                            scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), aTri, 1, 0x00AAAA));
+                            //console.log("upAngle: " + angle);
+                            scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xFFFF00));
+                            scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), centre2, 1, 0x00AAAA));
                             
                             //Triangle
                             var from1 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
@@ -507,8 +512,8 @@
                             var frodir3 = new THREE.Vector3().addVectors(from3, dir3);
                             scene.add( new THREE.ArrowHelper(dir3.clone().normalize(), from3, dir3.length(), 0x0000FF));
                 
-                        }*/
-                        
+                        }
+                        */
                         
                         //Get bounds
                         var xMaxB = Math.max(vertices[faces[i].a].x, vertices[faces[i].b].x, vertices[faces[i].c].x);
@@ -517,6 +522,8 @@
                         var yMinB = Math.min(vertices[faces[i].a].y, vertices[faces[i].b].y, vertices[faces[i].c].y);
                         //Calculate size
                         sizeOfFaces.push(new THREE.Vector2((xMaxB - xMinB)*scale, (yMaxB - yMinB)*scale));
+                        
+                        
                         //reset vertices to orignal values
                         vertices[faces[i].a] = new THREE.Vector3(model.children[0].geometry.vertices[faces[i].a].x, 
                                                                  model.children[0].geometry.vertices[faces[i].a].y, 
@@ -582,9 +589,11 @@
                         //element.style.background = new THREE.Color( Math.random() * 0xffffff ).getStyle();
 
                         var object = new THREE.CSS3DObject( element );
-                        
-                        
+                        //.applyAxisAngle(inWards, angle);
+                        var matZ = new THREE.Matrix4().makeRotationZ(-angle);
                         var mat = new THREE.Matrix4();
+                        //object.rotateOnAxis(inWards, -angle);
+                        object.applyMatrix(matZ);
                         object.applyMatrix(mat.makeRotationFromQuaternion(quaternion2));
                         //object.lookAt(faces[i].normal.add(object.position));
                         
@@ -607,7 +616,7 @@
                     renderer = new THREE.CSS3DRenderer();
                     renderer.domElement.style.position = 'absolute';
                     renderer.domElement.style.top = 0;
-                    //renderer.domElement.style.left = 300;
+                    renderer.domElement.style.left = 300;
                     renderer.setSize( winWidth, winHeight);
                     document.getElementById("p212201_ad_container").appendChild( renderer.domElement );
                     
