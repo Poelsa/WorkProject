@@ -331,17 +331,14 @@
                     
                     controls = new THREE.TrackballControls( camera );
                     //model.children[0].scale = 100;
-                    scene.add( new THREE.FaceNormalsHelper( model.children[0] ) );
+                    scene.add( new THREE.WireframeHelper( model.children[0] ) );
                     
                     var faces = model.children[0].geometry.faces;
                     
                     var loopLength = faces.length;
-                    var scale = 1;
+                    var scale = 100;
                     
                     var padding = 0;
-                    
-                    var rotation = new THREE.Euler(Math.PI, 0, 0, "XYZ");
-                    var rotateEuler = false;
                     
                     var vertices = [];
                     for (var i = 0; i < model.children[0].geometry.vertices.length; i++) {
@@ -349,8 +346,7 @@
                         vertices[i] = new THREE.Vector3(model.children[0].geometry.vertices[i].x, 
                                                         model.children[0].geometry.vertices[i].y, 
                                                         model.children[0].geometry.vertices[i].z);
-                        if(rotateEuler)
-                            vertices[i].applyEuler(rotation);
+                        
                     }
                     
                     var centreOfFaces = [];
@@ -373,9 +369,54 @@
                     for (var i = 0; i < loopLength; i++) {
                         var picSize = new THREE.Vector2(image.width, image.height);
                         
-                        aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
-                        bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
-                        cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
+                        var aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
+                        var bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
+                        var cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
+                        
+                        var triangle = 55;
+                        //Wireframe test
+                        /*if(i==triangle)
+                        {
+                            var from1 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
+                            var to1 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
+                            var dir1 = new THREE.Vector3().subVectors(to1, from1);
+                            var frodir1 = new THREE.Vector3().addVectors(from1, dir1);
+                            scene.add( new THREE.ArrowHelper(dir1.clone().normalize(), from1, dir1.length(), 0xFF0000));
+                            console.log("1) from: "+from1.x+", "+from1.y+", "+from1.z);
+                            console.log("1) to: "+to1.x+", "+to1.y+", "+to1.z);
+                            console.log("1) dir: "+dir1.x+", "+dir1.y+", "+dir1.z);
+                            console.log("1) from+dir: "+frodir1.x+", "+frodir1.y+", "+frodir1.z);
+                            console.log("1) length: "+dir1.length());
+                            console.log("1) color: RED");
+                            console.log("-------------------------------------------------------------------");
+
+                            var from2 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
+                            var to2 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
+                            var dir2 = new THREE.Vector3().subVectors(to2, from2);
+                            var frodir2 = new THREE.Vector3().addVectors(from2, dir2);
+                            scene.add( new THREE.ArrowHelper(dir2.clone().normalize(), from2, dir2.length(), 0x00FF00));
+                            console.log("2) from: "+from2.x+", "+from2.y+", "+from2.z);
+                            console.log("2) to: "+to2.x+", "+to2.y+", "+to2.z);
+                            console.log("2) dir: "+dir2.x+", "+dir2.y+", "+dir2.z);
+                            console.log("1) from+dir: "+frodir2.x+", "+frodir2.y+", "+frodir2.z);
+                            console.log("2) length: "+dir2.length());
+                            console.log("2) color: GREEN");
+                            console.log("-------------------------------------------------------------------");
+
+                            var from3 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
+                            var to3 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
+                            var dir3 = new THREE.Vector3().subVectors(to3, from3);
+                            var frodir3 = new THREE.Vector3().addVectors(from3, dir3);
+                            scene.add( new THREE.ArrowHelper(dir3.clone().normalize(), from3, dir3.length(), 0x0000FF));
+                            console.log("3) from: "+from3.x+", "+from3.y+", "+from3.z);
+                            console.log("3) to: "+to3.x+", "+to3.y+", "+to3.z);
+                            console.log("3) dir: "+dir3.x+", "+dir3.y+", "+dir3.z);
+                            console.log("1) from+dir: "+frodir3.x+", "+frodir3.y+", "+frodir3.z);
+                            console.log("3) length: "+dir3.length());
+                            console.log("3) color: BLUE");
+                            console.log("-------------------------------------------------------------------");
+                        }*/
+                        //var centre2 = ((aTri.add(bTri.add(cTri))).divideScalar(3)).multiplyScalar(scale);
                         
                         //This calculates the centre of the triangles bounding box
                         
@@ -386,31 +427,88 @@
                         var zMax = Math.max(aTri.z, bTri.z, cTri.z);
                         var zMin = Math.min(aTri.z, bTri.z, cTri.z);
                         
-                        centre = new THREE.Vector3(((xMax+xMin)/2)*scale, ((yMax+yMin)/2)*scale, ((zMax+zMin)/2)*scale);
+                        var centre = new THREE.Vector3(((xMax+xMin)/2)*scale, ((yMax+yMin)/2)*scale, ((zMax+zMin)/2)*scale);
             
-                        centreOfFaces.push(centre);
+                        //centreOfFaces.push(centre);
+                        //Normal arrows
+                        //scene.add( new THREE.ArrowHelper(faces[i].normal, centre2, 1, 0x884400));
                         
-                        scene.add( new THREE.ArrowHelper(faces[i].normal, centre, 5, 0x884400));
+                        
                         
                         ////////////////////////////////////////////////////////
                         //                  NORMALS ARE FINE                  //
                         ////////////////////////////////////////////////////////
                         
+                        
                         // Getting rotation of all faces
                     
-                        norm = new THREE.Vector3(faces[i].normal.x, faces[i].normal.y, faces[i].normal.z);
-                        //norm.normalize();
+                        var norm = new THREE.Vector3(faces[i].normal.x, faces[i].normal.y, faces[i].normal.z);
+                        
+                        norm.normalize();
                         var tepm = new THREE.Vector3(0,0,1);
+                        tepm.normalize();
+                        var rotaxis = new THREE.Vector3(0,1,0);
+                        var up = new THREE.Vector3(faces[i].normal.x, faces[i].normal.y, faces[i].normal.z);
+                        
+                        rotaxis.cross(up);
+                        //scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xFF9900));
+                        up.applyAxisAngle(rotaxis.normalize(), -Math.PI/2);
+                        
                         quaternion = quaternion.setFromUnitVectors(norm, tepm);
                         quaternion2 = quaternion2.setFromUnitVectors(tepm, norm);
-                        tepm.applyQuaternion(quaternion2);
-                        
+                        //tepm.applyQuaternion(quaternion2);
+                        //scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xFFFF00));
+                        //scene.add( new THREE.ArrowHelper(rotaxis, centre2, 1, 0x000000));
                         // Calculating size of faces
                         //Rotate the face to get a uniform starting point
                         
                         vertices[faces[i].a].applyQuaternion(quaternion);
                         vertices[faces[i].b].applyQuaternion(quaternion);
                         vertices[faces[i].c].applyQuaternion(quaternion);
+                        up.applyQuaternion(quaternion);
+                        
+                        var angle = up.angleTo(new THREE.Vector3(0,1,0));
+                        var inWards = new THREE.Vector3(0,0,1);
+                        vertices[faces[i].a].applyAxisAngle(inWards, angle);
+                        vertices[faces[i].b].applyAxisAngle(inWards, angle);
+                        vertices[faces[i].c].applyAxisAngle(inWards, angle);
+                        
+                        
+                        /*
+                        var aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
+                        var bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
+                        var cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
+                        
+                        
+                        //Wireframe test
+                        //if(i==triangle)
+                        {
+                            //Up arrow
+                            console.log("upAngle: " + angle);
+                            scene.add( new THREE.ArrowHelper(up, aTri, 1, 0xAA00AA));
+                            scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), aTri, 1, 0x00AAAA));
+                            
+                            //Triangle
+                            var from1 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
+                            var to1 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
+                            var dir1 = new THREE.Vector3().subVectors(to1, from1);
+                            var frodir1 = new THREE.Vector3().addVectors(from1, dir1);
+                            scene.add( new THREE.ArrowHelper(dir1.clone().normalize(), from1, dir1.length(), 0xFF0000));
+                            
+                            var from2 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
+                            var to2 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
+                            var dir2 = new THREE.Vector3().subVectors(to2, from2);
+                            var frodir2 = new THREE.Vector3().addVectors(from2, dir2);
+                            scene.add( new THREE.ArrowHelper(dir2.clone().normalize(), from2, dir2.length(), 0x00FF00));
+
+                            var from3 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
+                            var to3 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
+                            var dir3 = new THREE.Vector3().subVectors(to3, from3);
+                            var frodir3 = new THREE.Vector3().addVectors(from3, dir3);
+                            scene.add( new THREE.ArrowHelper(dir3.clone().normalize(), from3, dir3.length(), 0x0000FF));
+                
+                        }*/
+                        
                         
                         //Get bounds
                         var xMaxB = Math.max(vertices[faces[i].a].x, vertices[faces[i].b].x, vertices[faces[i].c].x);
@@ -429,27 +527,27 @@
                         vertices[faces[i].c] = new THREE.Vector3(model.children[0].geometry.vertices[faces[i].c].x, 
                                                                  model.children[0].geometry.vertices[faces[i].c].y, 
                                                                  model.children[0].geometry.vertices[faces[i].c].z);
-                                                                 
-                                                                 
+            
+            
                         ////////////////////////////////////////////////////////
                         //                   END PROBABILITY                  //
                         ////////////////////////////////////////////////////////
                        
        
                         //Calculating which pixels to cut between
-                        aCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][0].x), 
-                                         picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][0].y));
-                        bCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][1].x), 
-                                         picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][1].y));
-                        cCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][2].x), 
-                                         picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][2].y));
+                        var aCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][0].x), 
+                                             picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][0].y));
+                        var bCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][1].x), 
+                                             picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][1].y));
+                        var cCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][2].x), 
+                                             picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][2].y));
                         //var mCoord = new THREE.Vector2((aCoord.x+bCoord.x+cCoord.x)/3, (aCoord.y+bCoord.y+cCoord.y)/3);
                         
                         //Canvas texture stuff
-                        var texXMax = Math.max(aCoord.x, bCoord.x, cCoord.x) + padding;
-                        var texYMax = Math.max(aCoord.y, bCoord.y, cCoord.y) + padding;
-                        var texXMin = Math.min(aCoord.x, bCoord.x, cCoord.x) - padding;
-                        var texYMin = Math.min(aCoord.y, bCoord.y, cCoord.y) - padding;
+                        var texXMax = Math.max(aCoord.x, bCoord.x, cCoord.x);// + padding;
+                        var texYMax = Math.max(aCoord.y, bCoord.y, cCoord.y);// + padding;
+                        var texXMin = Math.min(aCoord.x, bCoord.x, cCoord.x);// - padding;
+                        var texYMin = Math.min(aCoord.y, bCoord.y, cCoord.y);// - padding;
                         /*
                         tempVec.copy(aCoord);
                         aCoord.add(((tempVec.sub(mCoord)).normalize()).multiplyScalar(7));
@@ -490,21 +588,27 @@
                         object.applyMatrix(mat.makeRotationFromQuaternion(quaternion2));
                         //object.lookAt(faces[i].normal.add(object.position));
                         
-                        object.position.x = centreOfFaces[i].x;
-                        object.position.y = centreOfFaces[i].y;
-                        object.position.z = centreOfFaces[i].z;
+                        //object.position.x = centreOfFaces[i].x;
+                        //object.position.y = centreOfFaces[i].y;
+                        //object.position.z = centreOfFaces[i].z;
+                        
+                        object.position.x = centre.x;
+                        object.position.y = centre.y;
+                        object.position.z = centre.z;
                         
                         scene.add( object );
                         
                         
                     }
                     
-                    renderer = new THREE.WebGLRenderer();
-                    renderer.setClearColor( 0xf0f0f0 );
+                    //renderer = new THREE.WebGLRenderer();
+                    //renderer.setClearColor( 0xf0f0f0 );
+                    
+                    renderer = new THREE.CSS3DRenderer();
+                    renderer.domElement.style.position = 'absolute';
+                    renderer.domElement.style.top = 0;
+                    //renderer.domElement.style.left = 300;
                     renderer.setSize( winWidth, winHeight);
-                    //renderer.domElement.style.position = 'absolute';
-                    //renderer.domElement.style.top = 0;
-                    renderer.domElement.style.left = 300;
                     document.getElementById("p212201_ad_container").appendChild( renderer.domElement );
                     
                     animate();
@@ -526,7 +630,7 @@
                 <div id="p212201_imp_counter" style="position:absolute;z-index:0;top:0px;left:0px;width:1px;height:1px;margin:0px;padding:0px;overflow:hidden;"></div>
                 <div id="p212201_display_area" style="position:absolute;top:0px;left:0px;width:320px;height:320px;margin:0px;padding:0px;-webkit-transition:all 0.5s linear 0ms;">
                     <div id="p212201_revolve_area" style="position:absolute;top:0px;left:0px;width:320px;height:320px;margin:0px;padding:0px;z-index:180;-webkit-perspective: 800;-webkit-transform-style: preserve-3d;-webkit-transform: translate3d(0px,0px,100px);">
-                        <img id="p212201_img_swipe" src="http://pliing.se/img/swipe.png" style="display:block;margin:0px;padding:0px;z-index:110;position:absolute;top:120px;left:98px;width:124px;height:40px;visibility:hidden;-webkit-transform: translate3d(0px,0px,50px);" onload="p212201InitBanner();" />
+                        <img id="p212201_img_swipe" src="http://pliing.se/img/swipe.png" style="display:block;margin:0px;padding:0px;z-index:110;position:absolute;top:120px;left:98px;width:124px;height:40px;visibility:hidden;-webkit-transform: translate3d(0px,0px,50px);" onload="loadModel();" />
 
                         <div  id="p212201_cube_area" onclick="p212201LoadLink();" style="margin:0px;padding:0px;z-index:100;position:absolute;top:10px;left:10px;width:300px;height:300px;-webkit-transform-style: preserve-3d;-webkit-transform: translate3d(0px,0px,-49px);">
                             <div id="p212201_rot_x" style="margin:0px;padding:0px;z-index:100;position:absolute;top:0px;left:0px;width:300px;height:300px;-webkit-transition: -webkit-transform 1.1s linear;-webkit-transform-style: preserve-3d;">
@@ -535,9 +639,6 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
-                    <div id="p212201_bg_area" style="">
-                        <img id="p212201_img_background" src="http://pliing.se/img31/freixenet/bakgrund.png" style="display:block;margin:0px;padding:0px;z-index:0;position:absolute;top:0px;left:0px;width:320px;height:320px;" onload="loadModel();" />
                     </div>
                 </div>
             </div>
