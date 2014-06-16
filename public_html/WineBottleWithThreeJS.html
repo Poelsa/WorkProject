@@ -578,8 +578,12 @@
                         tempVec.copy(cCoord);
                         cCoord.add(((tempVec.sub(mCoord)).normalize()).multiplyScalar(7));
                         */
+                       
+                        if(i==7)
+                            var hej = 0;
+                       
                         var canv = document.createElement("canvas");
-                        canv.id = "face" + i;
+                        //canv.id = "face" + i;
                         canv.width = (texXMax-texXMin).toFixed(3);
                         canv.height = (texYMax-texYMin).toFixed(3);
                         
@@ -597,10 +601,19 @@
                         ctx.clip();
                         ctx.drawImage(image, 0, 0);
                         
+                        //Try to skew triangle
+                        //Get pixel data
+                        var srcData = ctx.getImageData(0,0,canv.width,canv.height);
+                        
+                        //////////////////////////////////////
+                        
+                        //canv.perspective([0,0,1,0,0,1,1,1],[0,0,1,0,0,1,1,1]);
+                        
                         var element = document.createElement("img");
                         element.src = canv.toDataURL();
                         element.style.width = sizeOfFaces[i].x + 'px';
                         element.style.height = sizeOfFaces[i].y + 'px';
+                        element.id = i;
                         //element.style.background = new THREE.Color( Math.random() * 0xffffff ).getStyle();
 
                         var object = new THREE.CSS3DObject( element );
