@@ -532,8 +532,17 @@
                         var yMaxB = Math.max(vertices[faces[i].a].y, vertices[faces[i].b].y, vertices[faces[i].c].y);
                         var yMinB = Math.min(vertices[faces[i].a].y, vertices[faces[i].b].y, vertices[faces[i].c].y);
                         //Calculate size
-                        sizeOfFaces.push(new THREE.Vector2((xMaxB - xMinB)*scale, (yMaxB - yMinB)*scale));
+                        var w = xMaxB - xMinB;
+                        var h = yMaxB - yMinB;
+                        sizeOfFaces.push(new THREE.Vector2((w)*scale, (h)*scale));
                         
+                        var BUVs = [];
+                        BUVs.push(new THREE.Vector2((vertices[faces[i].a].x - xMinB)/w, 
+                                                    1-(vertices[faces[i].a].y - yMinB)/h));
+                        BUVs.push(new THREE.Vector2((vertices[faces[i].b].x - xMinB)/w, 
+                                                    1-(vertices[faces[i].b].y - yMinB)/h));
+                        BUVs.push(new THREE.Vector2((vertices[faces[i].c].x - xMinB)/w, 
+                                                    1-(vertices[faces[i].c].y - yMinB)/h));
                         
                         //reset vertices to orignal values
                         vertices[faces[i].a] = new THREE.Vector3(model.children[0].geometry.vertices[faces[i].a].x, 
@@ -579,13 +588,37 @@
                         cCoord.add(((tempVec.sub(mCoord)).normalize()).multiplyScalar(7));
                         */
                        
+                        var texW = texXMax-texXMin;
+                        var texH = texYMax-texYMin;
+                       
+                        var LUVs = [];
+                        if(false) {
+                            LUVs.push(new THREE.Vector2((aCoord.x - texXMin)/texW, 
+                                                        (aCoord.y - texYMin)/texH));
+                            LUVs.push(new THREE.Vector2((bCoord.x - texXMin)/texW, 
+                                                        (bCoord.y - texYMin)/texH));
+                            LUVs.push(new THREE.Vector2((cCoord.x - texXMin)/texW, 
+                                                        (cCoord.y - texYMin)/texH));
+                        }
+                        else {
+                            LUVs.push(new THREE.Vector2((aCoord.x - texXMin), 
+                                                        (aCoord.y - texYMin)));
+                            LUVs.push(new THREE.Vector2((bCoord.x - texXMin), 
+                                                        (bCoord.y - texYMin)));
+                            LUVs.push(new THREE.Vector2((cCoord.x - texXMin), 
+                                                        (cCoord.y - texYMin)));
+
+                            BUVs[0].multiply(new THREE.Vector2(texW, texH));
+                            BUVs[1].multiply(new THREE.Vector2(texW, texH));
+                            BUVs[2].multiply(new THREE.Vector2(texW, texH));
+                        }
                         if(i==7)
                             var hej = 0;
                        
                         var canv = document.createElement("canvas");
                         //canv.id = "face" + i;
-                        canv.width = (texXMax-texXMin).toFixed(3);
-                        canv.height = (texYMax-texYMin).toFixed(3);
+                        canv.width = texW;
+                        canv.height = texH;
                         
                         var ctx = canv.getContext("2d");
                         
@@ -602,8 +635,21 @@
                         ctx.drawImage(image, 0, 0);
                         
                         //Try to skew triangle
-                        //Get pixel data
-                        var srcData = ctx.getImageData(0,0,canv.width,canv.height);
+                        //Compare UVs
+                        if(BUVs[0].x != LUVs[0].x || BUVs[0].y != LUVs[0].y || 
+                           BUVs[1].x != LUVs[1].x || BUVs[1].y != LUVs[1].y || 
+                           BUVs[2].x != LUVs[2].x || BUVs[2].y != LUVs[2].y) {
+                            //Get pixel data
+                            var srcData = ctx.getImageData(0,0,canv.width,canv.height);
+                            var dstData = ctx.getImageData(0,0,canv.width,canv.height);
+
+                            warpTriangle(srcData, LUVs, dstData, BUVs);
+                            
+                            ctx.putImageData(dstData, 0, 0);
+                        
+                        }
+                        else
+                            var bajs = 1;
                         
                         //////////////////////////////////////
                         
@@ -658,6 +704,83 @@
                     controls.update();
                     renderer.render( scene, camera );
                 };
+                
+                function warpTriangle(srcData, srcPoints, dstData, dstPoints) {
+                    var PIXEL_WIDTH = 4;
+                    
+                    var src_pixel_data = srcData.data;
+                    var dst_pixel_data = dstData.data;
+                    
+                    var src_triangle = [srcPoints[0].toArray(),srcPoints[1].toArray(),srcPoints[2].toArray()];
+                    var dst_triangle = [dstPoints[0].toArray(),dstPoints[1].toArray(),dstPoints[2].toArray()];
+
+                    for(var x = 0; x < dstData.width; x++) {
+                        for(var y = 0; y < dstData.height; y++) {
+                            // This line is the exciting part
+                            var uv = cartesian_to_barycentric(dst_triangle, [x, y]);
+                            
+                            // Another lovely aspect of barycentric coords
+                            var xy_in_triangle = (uv[0] >= 0) && (uv[1] >= 0) && (uv[0] + uv[1] <= 1); 
+
+                            var dst_pixel_start = PIXEL_WIDTH * (x + y * dstData.width); 
+
+                            if (xy_in_triangle) {
+                                var src_xy = barycentric_to_cartesian(src_triangle, uv);
+                                var src_pixel_start = PIXEL_WIDTH * (Math.floor(src_xy[0]) 
+                                                  + Math.floor(src_xy[1]) * srcData.width);
+
+                                dst_pixel_data[dst_pixel_start]   = src_pixel_data[src_pixel_start];
+                                dst_pixel_data[dst_pixel_start+1] = src_pixel_data[src_pixel_start+1];
+                                dst_pixel_data[dst_pixel_start+2] = src_pixel_data[src_pixel_start+2];
+                                dst_pixel_data[dst_pixel_start+3] = src_pixel_data[src_pixel_start+3];
+                            } else {
+                                dst_pixel_data[dst_pixel_start] = 0;
+                                dst_pixel_data[dst_pixel_start+1] = 0;
+                                dst_pixel_data[dst_pixel_start+2] = 0;
+                                dst_pixel_data[dst_pixel_start+3] = 0;
+                            }
+                        }
+                    }
+                };
+                
+                // Vector math
+                function add(v0, v1) { return [v0[0] + v1[0], v0[1] + v1[1]]; }
+                function sub(v0, v1) { return [v0[0] - v1[0], v0[1] - v1[1]]; }
+                function dot(v0, v1) { return v0[0]*v1[0] + v0[1]*v1[1]; }
+                function mul(k, v) { return [k*v[0], k*v[1]]; }
+
+                function cartesian_to_barycentric(triangle, xy) {
+                    var a = triangle[0];
+                    var b = triangle[1];
+                    var c = triangle[2];
+
+                    var v0 = sub(c, a);
+                    var v1 = sub(b, a);
+                    var v2 = sub(xy, a);
+
+                    // Compute dot products
+                    var dot00 = dot(v0, v0);
+                    var dot01 = dot(v0, v1);
+                    var dot02 = dot(v0, v2);
+                    var dot11 = dot(v1, v1);
+                    var dot12 = dot(v1, v2);
+
+                    // Compute barycentric coordinates
+                    var invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+                    var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
+                    var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
+
+                    return [u, v];
+                }
+
+                function barycentric_to_cartesian(triangle, uv) {
+                    var a = triangle[0];
+                    var ba = sub(triangle[1], a);
+                    var ca = sub(triangle[2], a);
+
+                    return add(a, add( mul(uv[0], ca), mul(uv[1], ba)));
+                }
+                
             }
                 
             /**</AdScript>**/
