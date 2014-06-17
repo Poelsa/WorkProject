@@ -338,7 +338,7 @@
                     var loopLength = faces.length;
                     var scale = 100;
                     
-                    var padding = 0;
+                    var padding = 2;
                     
                     var vertices = [];
                     for (var i = 0; i < model.children[0].geometry.vertices.length; i++) {
@@ -349,21 +349,13 @@
                         
                     }
                     
-                    var centreOfFaces = [];
-                    var centre;
-                    var aTri, bTri, cTri;
-                    
                     var quaternion = new THREE.Quaternion();
                     var quaternion2 = new THREE.Quaternion();
                     var sizeOfFaces = [];
-                    var aCoord = new THREE.Vector2(), bCoord = new THREE.Vector2(), cCoord = new THREE.Vector2();
                     
                     var image = new Image();
                     image.src = "/WineBottleProject/Model/Vinflaska/vinflaska_textur.jpg";
                     
-                    ////////////////////////////////////////////////////////
-                    //           ERROR PROBABLY SOMEWHERE HERE            //
-                    ////////////////////////////////////////////////////////
                     
                     image.onload = function() {
                     for (var i = 0; i < loopLength; i++) {
@@ -372,76 +364,7 @@
                         var aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
                         var bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
                         var cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
-                        /*
-                        var triangle = 55;
-                        //Wireframe test
-                        if(i==triangle)
-                        {
-                            var from1 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
-                            var to1 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
-                            var dir1 = new THREE.Vector3().subVectors(to1, from1);
-                            var frodir1 = new THREE.Vector3().addVectors(from1, dir1);
-                            scene.add( new THREE.ArrowHelper(dir1.clone().normalize(), from1, dir1.length(), 0xFF0000));
-                            console.log("1) from: "+from1.x+", "+from1.y+", "+from1.z);
-                            console.log("1) to: "+to1.x+", "+to1.y+", "+to1.z);
-                            console.log("1) dir: "+dir1.x+", "+dir1.y+", "+dir1.z);
-                            console.log("1) from+dir: "+frodir1.x+", "+frodir1.y+", "+frodir1.z);
-                            console.log("1) length: "+dir1.length());
-                            console.log("1) color: RED");
-                            console.log("-------------------------------------------------------------------");
-
-                            var from2 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
-                            var to2 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
-                            var dir2 = new THREE.Vector3().subVectors(to2, from2);
-                            var frodir2 = new THREE.Vector3().addVectors(from2, dir2);
-                            scene.add( new THREE.ArrowHelper(dir2.clone().normalize(), from2, dir2.length(), 0x00FF00));
-                            console.log("2) from: "+from2.x+", "+from2.y+", "+from2.z);
-                            console.log("2) to: "+to2.x+", "+to2.y+", "+to2.z);
-                            console.log("2) dir: "+dir2.x+", "+dir2.y+", "+dir2.z);
-                            console.log("1) from+dir: "+frodir2.x+", "+frodir2.y+", "+frodir2.z);
-                            console.log("2) length: "+dir2.length());
-                            console.log("2) color: GREEN");
-                            console.log("-------------------------------------------------------------------");
-
-                            var from3 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
-                            var to3 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
-                            var dir3 = new THREE.Vector3().subVectors(to3, from3);
-                            var frodir3 = new THREE.Vector3().addVectors(from3, dir3);
-                            scene.add( new THREE.ArrowHelper(dir3.clone().normalize(), from3, dir3.length(), 0x0000FF));
-                            console.log("3) from: "+from3.x+", "+from3.y+", "+from3.z);
-                            console.log("3) to: "+to3.x+", "+to3.y+", "+to3.z);
-                            console.log("3) dir: "+dir3.x+", "+dir3.y+", "+dir3.z);
-                            console.log("1) from+dir: "+frodir3.x+", "+frodir3.y+", "+frodir3.z);
-                            console.log("3) length: "+dir3.length());
-                            console.log("3) color: BLUE");
-                            console.log("-------------------------------------------------------------------");
-                        }*/
-                        //var centre2 = ((aTri.clone().add(bTri.clone().add(cTri))).divideScalar(3)).multiplyScalar(scale);
                         
-                        //This calculates the centre of the triangles bounding box
-                        // There be problem here somewhere...
-                        /*
-                        var xMax = Math.max(aTri.x, bTri.x, cTri.x);
-                        var xMin = Math.min(aTri.x, bTri.x, cTri.x);
-                        var yMax = Math.max(aTri.y, bTri.y, cTri.y);
-                        var yMin = Math.min(aTri.y, bTri.y, cTri.y);
-                        var zMax = Math.max(aTri.z, bTri.z, cTri.z);
-                        var zMin = Math.min(aTri.z, bTri.z, cTri.z);
-                        
-                        var centre = new THREE.Vector3(((xMax+xMin)/2)*scale, ((yMax+yMin)/2)*scale, ((zMax+zMin)/2)*scale);
-            */
-                        //centreOfFaces.push(centre);
-                        //Normal arrows
-                        //scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,0,0), centre, 1, 0x884400));
-                        
-                        
-                        
-                        ////////////////////////////////////////////////////////
-                        //                  NORMALS ARE FINE                  //
-                        ////////////////////////////////////////////////////////
-                        
-                        
-                        // Getting rotation of all faces
                     
                         var norm = new THREE.Vector3(faces[i].normal.x, faces[i].normal.y, faces[i].normal.z);
                         
@@ -457,11 +380,7 @@
                         
                         quaternion = quaternion.setFromUnitVectors(norm, tepm);
                         quaternion2 = quaternion2.setFromUnitVectors(tepm, norm);
-                        //tepm.applyQuaternion(quaternion2);
-                        //scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xFFFF00));
-                        //scene.add( new THREE.ArrowHelper(rotaxis, centre2, 1, 0x000000));
-                        // Calculating size of faces
-                        //Rotate the face to get a uniform starting point
+                        
                         
                         vertices[faces[i].a].applyQuaternion(quaternion);
                         vertices[faces[i].b].applyQuaternion(quaternion);
@@ -481,40 +400,8 @@
                         var aTri = new THREE.Vector3(vertices[faces[i].a].x, vertices[faces[i].a].y, vertices[faces[i].a].z);
                         var bTri = new THREE.Vector3(vertices[faces[i].b].x, vertices[faces[i].b].y, vertices[faces[i].b].z);
                         var cTri = new THREE.Vector3(vertices[faces[i].c].x, vertices[faces[i].c].y, vertices[faces[i].c].z);
-                        /*
-                        var centre2 = ((aTri.clone().add(bTri.clone().add(cTri))).divideScalar(3)).multiplyScalar(scale);
-                        scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xAA00AA));
-                         
-                        up.applyAxisAngle(inWards, angle);
-                        //Wireframe test
-                        //if(i==triangle)
-                        {
-                            //Up arrow
-                            //console.log("upAngle: " + angle);
-                            scene.add( new THREE.ArrowHelper(up, centre2, 1, 0xFFFF00));
-                            scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), centre2, 1, 0x00AAAA));
-                            
-                            //Triangle
-                            var from1 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
-                            var to1 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
-                            var dir1 = new THREE.Vector3().subVectors(to1, from1);
-                            var frodir1 = new THREE.Vector3().addVectors(from1, dir1);
-                            scene.add( new THREE.ArrowHelper(dir1.clone().normalize(), from1, dir1.length(), 0xFF0000));
-                            
-                            var from2 = new THREE.Vector3(bTri.x, bTri.y, bTri.z);
-                            var to2 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
-                            var dir2 = new THREE.Vector3().subVectors(to2, from2);
-                            var frodir2 = new THREE.Vector3().addVectors(from2, dir2);
-                            scene.add( new THREE.ArrowHelper(dir2.clone().normalize(), from2, dir2.length(), 0x00FF00));
-
-                            var from3 = new THREE.Vector3(cTri.x, cTri.y, cTri.z);
-                            var to3 = new THREE.Vector3(aTri.x, aTri.y, aTri.z);
-                            var dir3 = new THREE.Vector3().subVectors(to3, from3);
-                            var frodir3 = new THREE.Vector3().addVectors(from3, dir3);
-                            scene.add( new THREE.ArrowHelper(dir3.clone().normalize(), from3, dir3.length(), 0x0000FF));
-                
-                        }
-                        */
+                        
+                        
                        
                         var xMax = Math.max(aTri.x, bTri.x, cTri.x);
                         var xMin = Math.min(aTri.x, bTri.x, cTri.x);
@@ -526,6 +413,28 @@
                         var centre = new THREE.Vector3(((xMax+xMin)/2)*scale, ((yMax+yMin)/2)*scale, ((zMax+zMin)/2)*scale);
                         //scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), centre, 1, 0x440088));
                         
+                        var triCenter = ((aTri.clone().add(bTri.clone().add(cTri))).divideScalar(3)).multiplyScalar(scale);
+                        vertices[faces[i].a].multiplyScalar(scale);
+                        vertices[faces[i].b].multiplyScalar(scale);
+                        vertices[faces[i].c].multiplyScalar(scale);
+                        /*
+                        var antiPadding = 1;
+                        var tempVec = new THREE.Vector2(0,0).subVectors(
+                                      new THREE.Vector2(vertices[faces[i].a].x, vertices[faces[i].a].y),
+                                      new THREE.Vector2(triCenter.x, triCenter.y));
+                        tempVec.normalize().multiplyScalar(antiPadding);
+                        vertices[faces[i].a].add(new THREE.Vector3(tempVec.x, tempVec.y, 0));
+                        var tempVec = new THREE.Vector2(0,0).subVectors(
+                                      new THREE.Vector2(vertices[faces[i].b].x, vertices[faces[i].b].y),
+                                      new THREE.Vector2(triCenter.x, triCenter.y));
+                        tempVec.normalize().multiplyScalar(antiPadding);
+                        vertices[faces[i].b].add(new THREE.Vector3(tempVec.x, tempVec.y, 0));
+                        var tempVec = new THREE.Vector2(0,0).subVectors(
+                                      new THREE.Vector2(vertices[faces[i].c].x, vertices[faces[i].c].y),
+                                      new THREE.Vector2(triCenter.x, triCenter.y));
+                        tempVec.normalize().multiplyScalar(antiPadding);
+                        vertices[faces[i].c].add(new THREE.Vector3(tempVec.x, tempVec.y, 0));
+                        */
                         //Get bounds
                         var xMaxB = Math.max(vertices[faces[i].a].x, vertices[faces[i].b].x, vertices[faces[i].c].x);
                         var xMinB = Math.min(vertices[faces[i].a].x, vertices[faces[i].b].x, vertices[faces[i].c].x);
@@ -534,7 +443,7 @@
                         //Calculate size
                         var w = xMaxB - xMinB;
                         var h = yMaxB - yMinB;
-                        sizeOfFaces.push(new THREE.Vector2((w)*scale, (h)*scale));
+                        sizeOfFaces.push(new THREE.Vector2((w)+padding*2, (h)+padding*2));
                         
                         var BUVs = [];
                         BUVs.push(new THREE.Vector2((vertices[faces[i].a].x - xMinB)/w, 
@@ -560,11 +469,7 @@
                         
                         //scene.add( new THREE.ArrowHelper(new THREE.Vector3(0,1,0), centre, 1, 0x884400));
                         
-                        ////////////////////////////////////////////////////////
-                        //                   END PROBABILITY                  //
-                        ////////////////////////////////////////////////////////
                        
-       
                         //Calculating which pixels to cut between
                         var aCoord = new THREE.Vector2((picSize.x * model.children[0].geometry.faceVertexUvs[0][i][0].x), 
                                              picSize.y-(picSize.y * model.children[0].geometry.faceVertexUvs[0][i][0].y));
@@ -592,29 +497,18 @@
                         var texH = texYMax-texYMin;
                        
                         var LUVs = [];
-                        if(false) {
-                            LUVs.push(new THREE.Vector2((aCoord.x - texXMin)/texW, 
-                                                        (aCoord.y - texYMin)/texH));
-                            LUVs.push(new THREE.Vector2((bCoord.x - texXMin)/texW, 
-                                                        (bCoord.y - texYMin)/texH));
-                            LUVs.push(new THREE.Vector2((cCoord.x - texXMin)/texW, 
-                                                        (cCoord.y - texYMin)/texH));
-                        }
-                        else {
-                            LUVs.push(new THREE.Vector2((aCoord.x - texXMin), 
-                                                        (aCoord.y - texYMin)));
-                            LUVs.push(new THREE.Vector2((bCoord.x - texXMin), 
-                                                        (bCoord.y - texYMin)));
-                            LUVs.push(new THREE.Vector2((cCoord.x - texXMin), 
-                                                        (cCoord.y - texYMin)));
+                        LUVs.push(new THREE.Vector2((aCoord.x - texXMin), 
+                                                    (aCoord.y - texYMin)));
+                        LUVs.push(new THREE.Vector2((bCoord.x - texXMin), 
+                                                    (bCoord.y - texYMin)));
+                        LUVs.push(new THREE.Vector2((cCoord.x - texXMin), 
+                                                    (cCoord.y - texYMin)));
 
-                            BUVs[0].multiply(new THREE.Vector2(texW, texH));
-                            BUVs[1].multiply(new THREE.Vector2(texW, texH));
-                            BUVs[2].multiply(new THREE.Vector2(texW, texH));
-                        }
-                        if(i==7)
-                            var hej = 0;
-                       
+                        BUVs[0].multiply(new THREE.Vector2(texW, texH));
+                        BUVs[1].multiply(new THREE.Vector2(texW, texH));
+                        BUVs[2].multiply(new THREE.Vector2(texW, texH));
+                        
+                        
                         var canv = document.createElement("canvas");
                         //canv.id = "face" + i;
                         canv.width = texW;
@@ -635,25 +529,14 @@
                         ctx.drawImage(image, 0, 0);
                         
                         //Try to skew triangle
-                        //Compare UVs
-                        if(BUVs[0].x != LUVs[0].x || BUVs[0].y != LUVs[0].y || 
-                           BUVs[1].x != LUVs[1].x || BUVs[1].y != LUVs[1].y || 
-                           BUVs[2].x != LUVs[2].x || BUVs[2].y != LUVs[2].y) {
-                            //Get pixel data
-                            var srcData = ctx.getImageData(0,0,canv.width,canv.height);
-                            var dstData = ctx.getImageData(0,0,canv.width,canv.height);
+                        
+                        //Get pixel data
+                        var srcData = ctx.getImageData(0,0,canv.width,canv.height);
+                        var dstData = ctx.getImageData(0,0,canv.width,canv.height);
 
-                            warpTriangle(srcData, LUVs, dstData, BUVs);
-                            
-                            ctx.putImageData(dstData, 0, 0);
-                        
-                        }
-                        else
-                            var bajs = 1;
-                        
-                        //////////////////////////////////////
-                        
-                        //canv.perspective([0,0,1,0,0,1,1,1],[0,0,1,0,0,1,1,1]);
+                        warpTriangle(srcData, LUVs, dstData, BUVs);
+
+                        ctx.putImageData(dstData, 0, 0);
                         
                         var element = document.createElement("img");
                         element.src = canv.toDataURL();
@@ -671,9 +554,8 @@
                         object.applyMatrix(mat.makeRotationFromQuaternion(quaternion2));
                         //object.lookAt(faces[i].normal.add(object.position));
                         
-                        //object.position.x = centreOfFaces[i].x;
-                        //object.position.y = centreOfFaces[i].y;
-                        //object.position.z = centreOfFaces[i].z;
+                        var dirToC = new THREE.Vector3(0,0,0).sub(triCenter);
+                        //centre.add(dirToC.divideScalar(100))
                         
                         object.position.x = centre.x;
                         object.position.y = centre.y;
