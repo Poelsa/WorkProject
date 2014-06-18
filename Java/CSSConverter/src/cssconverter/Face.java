@@ -1,8 +1,7 @@
 package cssconverter;
 
 
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
+import toxi.geom.Vec3D;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -16,11 +15,11 @@ import org.lwjgl.util.vector.Vector3f;
  */
 public class Face {
     public int a, b, c;
-    public Vector3f UVIndices = new Vector3f();
-    public Vector3f normalIndices = new Vector3f();
-    public Vector3f normal = new Vector3f();
+    public Vec3D UVIndices = new Vec3D();
+    public Vec3D normalIndices = new Vec3D();
+    public Vec3D normal = new Vec3D();
     
-    public Face(int a, int b, int c, Vector3f UV, Vector3f normalIndices) {
+    public Face(int a, int b, int c, Vec3D UV, Vec3D normalIndices) {
         this.a = a;
         this.b = b;
         this.c = c;
@@ -28,7 +27,7 @@ public class Face {
         this.normalIndices = normalIndices;
     }
     
-    public void setNormal(Vector3f normal) {
+    public void setNormal(Vec3D normal) {
         this.normal = normal;
     }
 }

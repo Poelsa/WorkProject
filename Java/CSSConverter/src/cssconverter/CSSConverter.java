@@ -9,9 +9,9 @@ package cssconverter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
-import org.lwjgl.util.vector.Quaternion;
+import toxi.geom.Quaternion;
+import toxi.geom.Vec2D;
+import toxi.geom.Vec3D;
 
 
 public class CSSConverter {
@@ -20,8 +20,8 @@ public class CSSConverter {
     public static void main(String[] args) {
         
         int scale = 100;
-        Vector2f sizeOfFace = new Vector2f();
-        Vector3f centerOfFace = new Vector3f();
+        Vec2D sizeOfFace = new Vec2D();
+        Vec3D centerOfFace = new Vec3D();
         Quaternion realToFlat = new Quaternion();
         Quaternion flatToReal = new Quaternion();
         
@@ -42,11 +42,14 @@ public class CSSConverter {
         for (int i = 0; i < m.faces.size(); i++) {
             Face currentFace = m.faces.get(i);
             
-            Vector3f aTri = m.vertices.get((int)currentFace.a);
-            Vector3f bTri = m.vertices.get((int)currentFace.b);
-            Vector3f cTri = m.vertices.get((int)currentFace.c);
+            Vec3D aTri = m.vertices.get((int)currentFace.a);
+            Vec3D bTri = m.vertices.get((int)currentFace.b);
+            Vec3D cTri = m.vertices.get((int)currentFace.c);
             
-            Vector3f norm = currentFace.normal;
+            Vec3D norm = currentFace.normal;
+            Vec3D inVec = new Vec3D(0,0,1);
+            
+            Vec3D rotAxis = norm.cross(new Vec3D(0,1,0));
         }
     }
 }

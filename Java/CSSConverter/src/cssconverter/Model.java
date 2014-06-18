@@ -8,17 +8,17 @@ package cssconverter;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.lwjgl.util.vector.Vector2f;
-import org.lwjgl.util.vector.Vector3f;
+import toxi.geom.Vec2D;
+import toxi.geom.Vec3D;
 
 /**
  *
  * @author Joel
  */
 public class Model {
-    public List<Vector3f> vertices = new ArrayList<Vector3f>();
-    public List<Vector3f> normals = new ArrayList<Vector3f>();
-    public List<Vector2f> UV = new ArrayList<Vector2f>();
+    public List<Vec3D> vertices = new ArrayList<Vec3D>();
+    public List<Vec3D> normals = new ArrayList<Vec3D>();
+    public List<Vec2D> UV = new ArrayList<Vec2D>();
     public List<Face> faces = new ArrayList<Face>();
     
     public Model() {
