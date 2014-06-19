@@ -143,16 +143,16 @@ public class CSSConverter {
             Vec2D bLUV = new Vec2D(bCoord.x-texXMin, bCoord.y-texYMin);
             Vec2D cLUV = new Vec2D(cCoord.x-texXMin, cCoord.y-texYMin);
             
-            aBUV.scaleSelf(aLUV);
-            bBUV.scaleSelf(bLUV);
-            cBUV.scaleSelf(cLUV);
+            aBUV.scaleSelf(texW, texH);
+            bBUV.scaleSelf(texW, texH);
+            cBUV.scaleSelf(texW, texH);
             
             //texture stuff, cut out images, deform triangles
             //get subimage(min, min, w, h)
             BufferedImage subTex = texture.getSubimage((int)texXMin, (int)texYMin, (int)texW, (int)texH);
             //send pixeldata and triangles to triangleWarper
             System.out.print(i);
-            BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aBUV, bBUV, cBUV}, new Vec2D[] {aLUV, bLUV, cLUV});
+            BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
             //save warped triangle image as png
             if(savePics) {
                 try {
@@ -190,12 +190,11 @@ public class CSSConverter {
                     Vec2D src_xy = barycentric_to_cartesian(srcTriangle, uv);
                     int xCoord = (int)(Math.floor(src_xy.x));
                     int yCoord = (int)(Math.floor(src_xy.y));
-                    if((int)(Math.floor(src_xy.x))-1>=result.getWidth() || (int)(Math.floor(src_xy.y))-1>=result.getHeight()
-                            || src_xy.x-1<0 || src_xy.y-1<0)
+                    if(xCoord>=result.getWidth() || yCoord>=result.getHeight() || xCoord<0 || yCoord<0)
                         src_xy.copy();
                     //int srcPixelStart = srcPixWidth*(int)(Math.floor(src_xy.x)+Math.floor(src_xy.y)*srcData.getWidth());
-                    //Color pixelCol = new Color(srcData.getRGB((int)(Math.floor(src_xy.x)), (int)Math.floor(src_xy.y)), hasAlpha);
-                    Color pixelCol = new Color(srcData.getRGB(x,y),hasAlpha);
+                    Color pixelCol = new Color(srcData.getRGB(xCoord, yCoord), hasAlpha);
+                    //Color pixelCol = new Color(srcData.getRGB(x,y),hasAlpha);
                     result.setRGB(x, y, pixelCol.getRGB());
                     /*
                     dstPixels[dstPixelStart] = srcPixels[srcPixelStart];
