@@ -47,7 +47,7 @@
                 
                 //Added by Joel
                 var model;
-                
+                var counter = 0;
                 var controls;
                 var scene;
                 var camera;
@@ -508,6 +508,16 @@
                         BUVs[1].multiply(new THREE.Vector2(texW, texH));
                         BUVs[2].multiply(new THREE.Vector2(texW, texH));
                         
+                        if(i==5){
+                            console.log("BUV1 - x: " + BUVs[0].x + ", y: " + BUVs[0].y);
+                            console.log("BUV2 - x: " + BUVs[1].x + ", y: " + BUVs[1].y);
+                            console.log("BUV3 - x: " + BUVs[2].x + ", y: " + BUVs[2].y);
+                            console.log("--------------------------------------------");
+                            console.log("LUV1 - x: " + LUVs[0].x + ", y: " + LUVs[0].y);
+                            console.log("LUV2 - x: " + LUVs[1].x + ", y: " + LUVs[1].y);
+                            console.log("LUV3 - x: " + LUVs[2].x + ", y: " + LUVs[2].y);
+                        }
+                        
                         
                         var canv = document.createElement("canvas");
                         //canv.id = "face" + i;
@@ -533,8 +543,8 @@
                         //Get pixel data
                         var srcData = ctx.getImageData(0,0,canv.width,canv.height);
                         var dstData = ctx.getImageData(0,0,canv.width,canv.height);
-
-                        warpTriangle(srcData, LUVs, dstData, BUVs);
+                        if(i==0)
+                            warpTriangle(srcData, LUVs, dstData, BUVs);
 
                         ctx.putImageData(dstData, 0, 0);
                         
@@ -659,8 +669,10 @@
                     var a = triangle[0];
                     var ba = sub(triangle[1], a);
                     var ca = sub(triangle[2], a);
-
-                    return add(a, add( mul(uv[0], ca), mul(uv[1], ba)));
+                    
+                    var ret = add(a, add( mul(uv[0], ca), mul(uv[1], ba)));
+                    
+                    return ret;
                 }
                 
             }

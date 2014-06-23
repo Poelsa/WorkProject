@@ -26,6 +26,7 @@ public class CSSConverter {
         String modelPath = "src/model/flaska.obj";
         String texturePath = "src/model/vinflaska_textur.jpg";
         boolean savePics = false;
+        new File("src/model/images").mkdirs();
         
         int scale = 100;
         Vec2D sizeOfFace = new Vec2D();
@@ -146,17 +147,29 @@ public class CSSConverter {
             aBUV.scaleSelf(texW, texH);
             bBUV.scaleSelf(texW, texH);
             cBUV.scaleSelf(texW, texH);
+            /*
+            if(i==5){
+                System.out.print("BUV1 - x: "+aBUV.x+", y: "+aBUV.y+"\n");
+                System.out.print("BUV2 - x: "+bBUV.x+", y: "+bBUV.y+"\n");
+                System.out.print("BUV3 - x: "+cBUV.x+", y: "+cBUV.y+"\n");
+                System.out.print("-----------------------------------\n");
+                System.out.print("LUV1 - x: "+aLUV.x+", y: "+aLUV.y+"\n");
+                System.out.print("LUV2 - x: "+bLUV.x+", y: "+bLUV.y+"\n");
+                System.out.print("LUV3 - x: "+cLUV.x+", y: "+cLUV.y+"\n");
+            }*/
             
             //texture stuff, cut out images, deform triangles
             //get subimage(min, min, w, h)
             BufferedImage subTex = texture.getSubimage((int)texXMin, (int)texYMin, (int)texW, (int)texH);
             //send pixeldata and triangles to triangleWarper
-            System.out.print(i);
-            BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
+            //System.out.print(i);
+            
             //save warped triangle image as png
             if(savePics) {
+            //if(i == 0) {
+                BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
                 try {
-                    File outputfile = new File("src/model/triangulated_"+i+".png");
+                    File outputfile = new File("src/model/images/triangulated_"+i+".png");
                     ImageIO.write(warpedTex, "png", outputfile);
                 } 
                 catch (IOException e) {
@@ -174,44 +187,33 @@ public class CSSConverter {
     int PIXEL_WIDTH = 4;
     public static BufferedImage WarpTriangle(BufferedImage srcData, Vec2D[] srcTriangle, Vec2D[] dstTriangle) {
         BufferedImage result = new BufferedImage(srcData.getWidth(), srcData.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        //byte[] srcPixels = ((DataBufferByte) srcData.getRaster().getDataBuffer()).getData();
-        //byte[] dstPixels = ((DataBufferByte) srcData.getRaster().getDataBuffer()).getData();
+        
         boolean hasAlpha = srcData.isAlphaPremultiplied();
-        //int srcPixWidth = (hasAlpha) ? 4 : 3;
+        float eps = 0.0001f;
         
         for(int x = 0; x < result.getWidth(); x++) {
             for(int y = 0; y < result.getHeight(); y++) {
+                
                 Vec2D uv = cartesian_to_barycentric(dstTriangle, new Vec2D(x,y));
                 
-                boolean xyInTriangle = (uv.x >= 0) && (uv.y >= 0) && (uv.x + uv.y <= 1);
-                //int dstPixelStart = PIXEL_WIDTH * (x + y*result.getWidth());
+                boolean xyInTriangle = (uv.x >= 0-eps) && (uv.y >= 0-eps) && (uv.x + uv.y <= 1+eps);
                 
                 if(xyInTriangle) {
                     Vec2D src_xy = barycentric_to_cartesian(srcTriangle, uv);
                     int xCoord = (int)(Math.floor(src_xy.x));
                     int yCoord = (int)(Math.floor(src_xy.y));
-                    if(xCoord>=result.getWidth() || yCoord>=result.getHeight() || xCoord<0 || yCoord<0)
-                        src_xy.copy();
-                    //int srcPixelStart = srcPixWidth*(int)(Math.floor(src_xy.x)+Math.floor(src_xy.y)*srcData.getWidth());
+                    
+                    xCoord = Math.max(0, Math.min(result.getWidth()-1, xCoord));
+                    yCoord = Math.max(0, Math.min(result.getHeight()-1, yCoord));
                     Color pixelCol = new Color(srcData.getRGB(xCoord, yCoord), hasAlpha);
-                    //Color pixelCol = new Color(srcData.getRGB(x,y),hasAlpha);
+                    
                     result.setRGB(x, y, pixelCol.getRGB());
-                    /*
-                    dstPixels[dstPixelStart] = srcPixels[srcPixelStart];
-                    dstPixels[dstPixelStart+1] = srcPixels[srcPixelStart+1];
-                    dstPixels[dstPixelStart+2] = srcPixels[srcPixelStart+2];
-                    if(hasAlpha)
-                        dstPixels[dstPixelStart+3] = srcPixels[srcPixelStart+3];
-                    else
-                        dstPixels[dstPixelStart+3] = 1;
-                            */
                 }
                 else {
                     result.setRGB(x, y, 0);
                 }
             }
         }
-        
         return result;
     }
     
@@ -235,12 +237,12 @@ public class CSSConverter {
         float invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
         float u = (dot11 * dot02 - dot01 * dot12) * invDenom;
         float v = (dot00 * dot12 - dot01 * dot02) * invDenom;
-
+        
         return new Vec2D(u,v);
     }
  
     public static Vec2D barycentric_to_cartesian(Vec2D[] triangle, Vec2D uv) {
-        Vec2D a = triangle[0];
+        Vec2D a = triangle[0].copy();
         Vec2D ba = triangle[1].sub(a);
         Vec2D ca = triangle[2].sub(a);
         
