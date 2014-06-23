@@ -508,15 +508,6 @@
                         BUVs[1].multiply(new THREE.Vector2(texW, texH));
                         BUVs[2].multiply(new THREE.Vector2(texW, texH));
                         
-                        if(i==5){
-                            console.log("BUV1 - x: " + BUVs[0].x + ", y: " + BUVs[0].y);
-                            console.log("BUV2 - x: " + BUVs[1].x + ", y: " + BUVs[1].y);
-                            console.log("BUV3 - x: " + BUVs[2].x + ", y: " + BUVs[2].y);
-                            console.log("--------------------------------------------");
-                            console.log("LUV1 - x: " + LUVs[0].x + ", y: " + LUVs[0].y);
-                            console.log("LUV2 - x: " + LUVs[1].x + ", y: " + LUVs[1].y);
-                            console.log("LUV3 - x: " + LUVs[2].x + ", y: " + LUVs[2].y);
-                        }
                         
                         
                         var canv = document.createElement("canvas");
@@ -543,8 +534,8 @@
                         //Get pixel data
                         var srcData = ctx.getImageData(0,0,canv.width,canv.height);
                         var dstData = ctx.getImageData(0,0,canv.width,canv.height);
-                        if(i==0)
-                            warpTriangle(srcData, LUVs, dstData, BUVs);
+                        
+                        warpTriangle(srcData, LUVs, dstData, BUVs);
 
                         ctx.putImageData(dstData, 0, 0);
                         
@@ -559,17 +550,25 @@
                         //.applyAxisAngle(inWards, angle);
                         var matZ = new THREE.Matrix4().makeRotationZ(-angle);
                         var mat = new THREE.Matrix4();
+                        var matTrans = new THREE.Matrix4().makeTranslation(centre.x, centre.y, centre.z);
                         //object.rotateOnAxis(inWards, -angle);
                         object.applyMatrix(matZ);
                         object.applyMatrix(mat.makeRotationFromQuaternion(quaternion2));
+                        object.applyMatrix(matTrans);
                         //object.lookAt(faces[i].normal.add(object.position));
                         
                         var dirToC = new THREE.Vector3(0,0,0).sub(triCenter);
                         //centre.add(dirToC.divideScalar(100))
+                        var s = object.matrix.elements;
+                        if(i==0)
+                        console.log("| "+s[0]+" "+s[1]+" "+s[2]+" "+s[3]+" |\n"+
+                                    "| "+s[4]+" "+s[5]+" "+s[6]+" "+s[7]+" |\n"+
+                                    "| "+s[8]+" "+s[9]+" "+s[10]+" "+s[11]+" |\n"+
+                                    "| "+s[12]+" "+s[13]+" "+s[14]+" "+s[15]+" |\n");
                         
-                        object.position.x = centre.x;
-                        object.position.y = centre.y;
-                        object.position.z = centre.z;
+                        //object.position.x = centre.x;
+                        //object.position.y = centre.y;
+                        //object.position.z = centre.z;
                         
                         scene.add( object );
                         

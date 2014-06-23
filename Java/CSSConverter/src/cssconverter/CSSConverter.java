@@ -177,11 +177,19 @@ public class CSSConverter {
                 }
             }
             //get rotation matrix
+            Matrix4x4 matrix = new Matrix4x4().identity();
             Matrix4x4 matZ = new Matrix4x4().identity().getRotatedZ(-angle);
             Matrix4x4 mat = flatToReal.toMatrix4x4();
-            mat.multiply(matZ);
-            //save string
+            matrix.multiplySelf(matZ);
+            matrix = mat.multiply(matrix);
             
+            Matrix4x4 transMat = new Matrix4x4().identity().translate(centerOfFace);
+            //matrix.translateSelf(centerOfFace);
+            matrix = transMat.multiply(matrix);
+            matrix.transpose();
+            //save string
+            //if(i==0)
+            //    System.out.print(matrix.toString() + "\n");
         }
     }
     int PIXEL_WIDTH = 4;
