@@ -8,9 +8,13 @@ package cssconverter;
 
 import java.awt.Color;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import javax.imageio.ImageIO;
 import toxi.geom.Matrix4x4;
 import toxi.geom.Quaternion;
@@ -28,7 +32,10 @@ public class CSSConverter {
         boolean savePics = false;
         new File("src/model/images").mkdirs();
         
-        int scale = 100;
+        String outPath = "src/model/flaska.txt";
+        String outString = "";
+        
+        int scale = 50;
         Vec2D sizeOfFace = new Vec2D();
         Vec3D centerOfFace = new Vec3D();
         Vec3D triCenter;
@@ -61,6 +68,8 @@ public class CSSConverter {
             e.printStackTrace();
             System.exit(1);
         }
+        
+        outString = "<div id=\"modelDiv\" style=\"left:150px\">\n";
         
         for (int i = 0; i < m.faces.size(); i++) {
             Face currentFace = m.faces.get(i);
@@ -123,7 +132,7 @@ public class CSSConverter {
             //triCenter.rotateAroundAxis(inVec, -angle);
             //flatToReal.toMatrix4x4().applyToSelf(triCenter);
             
-            float hej = m.UV.get((int)currentFace.UVIndices.z).x;
+            
             //Texture stuff
             Vec2D aCoord = new Vec2D(texWidth*m.UV.get((int)currentFace.UVIndices.x).x, 
                          texHeight-(texHeight*m.UV.get((int)currentFace.UVIndices.x).y));
@@ -147,16 +156,7 @@ public class CSSConverter {
             aBUV.scaleSelf(texW, texH);
             bBUV.scaleSelf(texW, texH);
             cBUV.scaleSelf(texW, texH);
-            /*
-            if(i==5){
-                System.out.print("BUV1 - x: "+aBUV.x+", y: "+aBUV.y+"\n");
-                System.out.print("BUV2 - x: "+bBUV.x+", y: "+bBUV.y+"\n");
-                System.out.print("BUV3 - x: "+cBUV.x+", y: "+cBUV.y+"\n");
-                System.out.print("-----------------------------------\n");
-                System.out.print("LUV1 - x: "+aLUV.x+", y: "+aLUV.y+"\n");
-                System.out.print("LUV2 - x: "+bLUV.x+", y: "+bLUV.y+"\n");
-                System.out.print("LUV3 - x: "+cLUV.x+", y: "+cLUV.y+"\n");
-            }*/
+            
             
             //texture stuff, cut out images, deform triangles
             //get subimage(min, min, w, h)
@@ -166,7 +166,6 @@ public class CSSConverter {
             
             //save warped triangle image as png
             if(savePics) {
-            //if(i == 0) {
                 BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
                 try {
                     File outputfile = new File("src/model/images/triangulated_"+i+".png");
@@ -180,19 +179,60 @@ public class CSSConverter {
             Matrix4x4 matrix = new Matrix4x4().identity();
             Matrix4x4 matZ = new Matrix4x4().identity().getRotatedZ(-angle);
             Matrix4x4 mat = flatToReal.toMatrix4x4();
+            Matrix4x4 transMat = new Matrix4x4().identity().translate(centerOfFace);
+            
             matrix.multiplySelf(matZ);
             matrix = mat.multiply(matrix);
-            
-            Matrix4x4 transMat = new Matrix4x4().identity().translate(centerOfFace);
-            //matrix.translateSelf(centerOfFace);
             matrix = transMat.multiply(matrix);
             matrix.transpose();
-            //save string
-            //if(i==0)
-            //    System.out.print(matrix.toString() + "\n");
+            float epsilon = 0.001f;
+            for(int r = 0; r < 4; r++) {
+                for(int c = 0; c < 4; c++) {
+                    if((matrix.matrix[r][c] > 0 && matrix.matrix[r][c] <= epsilon) 
+                     || matrix.matrix[r][c] < 0 && matrix.matrix[r][c] >= -epsilon)
+                        matrix.matrix[r][c] = 0;
+                }
+            }
+            
+            //round matrix values?
+            //make output string here!
+            String imgTag = "<img src=\""+"triangulated_"+i+".png\" id=\""+i+"\" ";
+            String style = "style=\"width: "+faceW+"px; height: "+faceH+"px; position: absolute; ";
+            String webkit = "-webkit-transform: translate3d(-50%,-50%,0px) ";
+            String matr = "matrix3d("+matrix.matrix[0][0]+", "+matrix.matrix[0][1]+", "+matrix.matrix[0][2]+", "+matrix.matrix[0][3]+", "
+                                     +-matrix.matrix[1][0]+", "+-matrix.matrix[1][1]+", "+-matrix.matrix[1][2]+", "+-matrix.matrix[1][3]+", "
+                                     +matrix.matrix[2][0]+", "+matrix.matrix[2][1]+", "+matrix.matrix[2][2]+", "+matrix.matrix[2][3]+", "
+                                     +matrix.matrix[3][0]+", "+matrix.matrix[3][1]+", "+matrix.matrix[3][2]+", "+matrix.matrix[3][3]+");";
+            
+            style += webkit + matr + "\"";
+            String tempOut = imgTag + style + ">\n";
+            if(i==-1) {
+                writeToOutput("src/model/flaska.txt", tempOut);
+            }
+            outString += tempOut;
+        }
+        
+        outString += "</div>\n";
+        
+        writeToOutput(outPath, outString);
+    }
+    
+    public static void writeToOutput(String fileName, String string) {
+        
+        Writer writer = null;
+        try {
+            writer = new BufferedWriter(new OutputStreamWriter(
+                  new FileOutputStream(fileName), "utf-8"));
+            writer.write(string);
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+        } 
+        finally {
+           try {writer.close();} catch (Exception ex) {}
         }
     }
-    int PIXEL_WIDTH = 4;
+    
     public static BufferedImage WarpTriangle(BufferedImage srcData, Vec2D[] srcTriangle, Vec2D[] dstTriangle) {
         BufferedImage result = new BufferedImage(srcData.getWidth(), srcData.getHeight(), BufferedImage.TYPE_INT_ARGB);
         
