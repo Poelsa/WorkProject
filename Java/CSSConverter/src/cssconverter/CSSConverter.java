@@ -28,22 +28,25 @@ public class CSSConverter {
     public static void main(String[] args) {
         
         String modelPath = "src/model/flaska.obj";
-        String texturePath = "src/model/vinflaska_textur.jpg";
+        //String texturePath = "src/model/vinflaska_textur.jpg";
+        String texturePath = "src/model/vinflaska_textur_small.jpg";
         boolean savePics = false;
-        new File("src/model/images").mkdirs();
+        new File("src/model/images_small").mkdirs();
         
         String outPath = "src/model/flaska.txt";
         String outString = "";
         
-        int scale = 50;
+        int scale = 25;
         Vec2D sizeOfFace = new Vec2D();
         Vec3D centerOfFace = new Vec3D();
-        Vec3D triCenter;
+        Vec3D triCenter = new Vec3D();
         Quaternion realToFlat = new Quaternion();
         Quaternion flatToReal = new Quaternion();
-        
-        int texWidth = 2048;
-        int texHeight = 2048;
+        Quaternion flatToInvReal = new Quaternion();
+         
+        //Change this, no hardcoded things plz =<
+        int texWidth = 1024;
+        int texHeight = 1024;
         
         //Load obj file
         Model m = null;
@@ -69,7 +72,7 @@ public class CSSConverter {
             System.exit(1);
         }
         
-        outString = "<div id=\"modelDiv\" style=\"left:150px\">\n";
+        outString = "<div id=\"modelDiv\" style=\"left:150px;position:absolute;\">\n";
         
         for (int i = 0; i < m.faces.size(); i++) {
             Face currentFace = m.faces.get(i);
@@ -79,14 +82,16 @@ public class CSSConverter {
             Vec3D cTri = m.vertices.get((int)currentFace.c).copy();
             
             Vec3D norm = currentFace.normal;
+            Vec3D invNorm = new Vec3D(currentFace.normal.x, -currentFace.normal.y, currentFace.normal.z);
             Vec3D inVec = new Vec3D(0,0,1); //tepm
             Vec3D calculatedUp = norm.copy(); //up
             
-            Vec3D rotAxis = calculatedUp.cross(new Vec3D(0,-1,0));
+            Vec3D rotAxis = calculatedUp.cross(new Vec3D(0,1,0));
             
-            calculatedUp = calculatedUp.rotateAroundAxis(rotAxis.normalize(), (float)-Math.PI/2);
+            calculatedUp = calculatedUp.rotateAroundAxis(rotAxis.normalize(), (float)Math.PI/2);
             realToFlat = Quaternion.getAlignmentQuat(inVec, norm);
             flatToReal = Quaternion.getAlignmentQuat(norm, inVec);
+            flatToInvReal = Quaternion.getAlignmentQuat(invNorm, inVec);
             
             realToFlat.normalize();
             flatToReal.normalize();
@@ -99,7 +104,7 @@ public class CSSConverter {
             float angle = calculatedUp.angleBetween(new Vec3D(0,1,0), true);
             if(calculatedUp.x < 0)
                 angle *= -1;
-            
+            //angle += Math.PI;
             aVertRotated.rotateAroundAxis(inVec, angle);
             bVertRotated.rotateAroundAxis(inVec, angle);
             cVertRotated.rotateAroundAxis(inVec, angle);
@@ -119,6 +124,9 @@ public class CSSConverter {
             
             centerOfFace = new Vec3D(((xMax+xMin)/2), ((yMax+yMin)/2), ((zMax+zMin)/2));
             
+            triCenter = aVertRotated.add(bVertRotated.add(cVertRotated));
+            triCenter.scaleSelf(1.0f/3.0f);
+            
             float faceW = xMax - xMin;
             float faceH = yMax - yMin;
             sizeOfFace = new Vec2D(faceW, faceH);
@@ -129,8 +137,8 @@ public class CSSConverter {
             
             centerOfFace.rotateAroundAxis(inVec, -angle);
             flatToReal.toMatrix4x4().applyToSelf(centerOfFace);
-            //triCenter.rotateAroundAxis(inVec, -angle);
-            //flatToReal.toMatrix4x4().applyToSelf(triCenter);
+            triCenter.rotateAroundAxis(inVec, -angle);
+            flatToReal.toMatrix4x4().applyToSelf(triCenter);
             
             
             //Texture stuff
@@ -168,17 +176,23 @@ public class CSSConverter {
             if(savePics) {
                 BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
                 try {
-                    File outputfile = new File("src/model/images/triangulated_"+i+".png");
+                    File outputfile = new File("src/model/images_small/triangulated_"+i+".png");
                     ImageIO.write(warpedTex, "png", outputfile);
                 } 
                 catch (IOException e) {
 
                 }
             }
+            
+            Vec3D dirToCenter = new Vec3D(0,0,0).sub(centerOfFace);
+            Vec3D dirFromTri = centerOfFace.sub(triCenter);
+            centerOfFace.addSelf(dirToCenter.scale(1.5f/(scale)));
+            centerOfFace.addSelf(dirFromTri.scale(1.0f/(scale*10)));
+            
             //get rotation matrix
             Matrix4x4 matrix = new Matrix4x4().identity();
-            Matrix4x4 matZ = new Matrix4x4().identity().getRotatedZ(-angle);
-            Matrix4x4 mat = flatToReal.toMatrix4x4();
+            Matrix4x4 matZ = new Matrix4x4().identity().getRotatedZ(angle);
+            Matrix4x4 mat = flatToInvReal.toMatrix4x4();
             Matrix4x4 transMat = new Matrix4x4().identity().translate(centerOfFace);
             
             matrix.multiplySelf(matZ);
@@ -200,15 +214,13 @@ public class CSSConverter {
             String style = "style=\"width: "+faceW+"px; height: "+faceH+"px; position: absolute; ";
             String webkit = "-webkit-transform: translate3d(-50%,-50%,0px) ";
             String matr = "matrix3d("+matrix.matrix[0][0]+", "+matrix.matrix[0][1]+", "+matrix.matrix[0][2]+", "+matrix.matrix[0][3]+", "
-                                     +-matrix.matrix[1][0]+", "+-matrix.matrix[1][1]+", "+-matrix.matrix[1][2]+", "+-matrix.matrix[1][3]+", "
+                                     +matrix.matrix[1][0]+", "+matrix.matrix[1][1]+", "+matrix.matrix[1][2]+", "+matrix.matrix[1][3]+", "
                                      +matrix.matrix[2][0]+", "+matrix.matrix[2][1]+", "+matrix.matrix[2][2]+", "+matrix.matrix[2][3]+", "
-                                     +matrix.matrix[3][0]+", "+matrix.matrix[3][1]+", "+matrix.matrix[3][2]+", "+matrix.matrix[3][3]+");";
+                                     +matrix.matrix[3][0]+", "+-matrix.matrix[3][1]+", "+matrix.matrix[3][2]+", "+matrix.matrix[3][3]+");";
             
             style += webkit + matr + "\"";
             String tempOut = imgTag + style + ">\n";
-            if(i==-1) {
-                writeToOutput("src/model/flaska.txt", tempOut);
-            }
+            
             outString += tempOut;
         }
         
