@@ -31,7 +31,8 @@ public class CSSConverter {
         //String texturePath = "src/model/vinflaska_textur.jpg";
         String texturePath = "src/model/vinflaska_textur_small.jpg";
         boolean savePics = false;
-        new File("src/model/images_small").mkdirs();
+        String picsPath = "src/model/images_gifs";
+        new File(picsPath).mkdirs();
         
         String outPath = "src/model/flaska.txt";
         String outString = "";
@@ -176,8 +177,8 @@ public class CSSConverter {
             if(savePics) {
                 BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
                 try {
-                    File outputfile = new File("src/model/images_small/triangulated_"+i+".png");
-                    ImageIO.write(warpedTex, "png", outputfile);
+                    File outputfile = new File(picsPath+"/triangulated_"+i+".gif");
+                    ImageIO.write(warpedTex, "gif", outputfile);
                 } 
                 catch (IOException e) {
 
@@ -210,8 +211,8 @@ public class CSSConverter {
             
             //round matrix values?
             //make output string here!
-            String imgTag = "<img src=\""+"triangulated_"+i+".png\" id=\""+i+"\" ";
-            String style = "style=\"width: "+faceW+"px; height: "+faceH+"px; position: absolute; ";
+            String imgTag = "<div id=\""+i+"\" ";
+            String style = "style=\"background-image: url("+"images_gifs/triangulated_"+i+".gif); background-size: contain; width: "+faceW+"px; height: "+faceH+"px; position: absolute; ";
             String webkit = "-webkit-transform: translate3d(-50%,-50%,0px) ";
             String matr = "matrix3d("+matrix.matrix[0][0]+", "+matrix.matrix[0][1]+", "+matrix.matrix[0][2]+", "+matrix.matrix[0][3]+", "
                                      +matrix.matrix[1][0]+", "+matrix.matrix[1][1]+", "+matrix.matrix[1][2]+", "+matrix.matrix[1][3]+", "
@@ -219,7 +220,7 @@ public class CSSConverter {
                                      +matrix.matrix[3][0]+", "+-matrix.matrix[3][1]+", "+matrix.matrix[3][2]+", "+matrix.matrix[3][3]+");";
             
             style += webkit + matr + "\"";
-            String tempOut = imgTag + style + ">\n";
+            String tempOut = imgTag + style + "></div>\n";
             
             outString += tempOut;
         }
