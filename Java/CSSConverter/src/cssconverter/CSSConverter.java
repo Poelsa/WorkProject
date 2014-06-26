@@ -27,14 +27,14 @@ public class CSSConverter {
     
     public static void main(String[] args) {
         
-        String modelPath = "src/model/flaska.obj";
+        String modelPath = "src/model/vinflaska_obj_highpoly.obj";
         //String texturePath = "src/model/vinflaska_textur.jpg";
         String texturePath = "src/model/vinflaska_textur_small.jpg";
         boolean savePics = false;
-        String picsPath = "src/model/images_gifs";
+        String picsPath = "src/model/images_gifs_highpoly";
         new File(picsPath).mkdirs();
         
-        String outPath = "src/model/flaska.txt";
+        String outPath = "src/model/flaska_highpoly.txt";
         String outString = "";
         
         int scale = 25;
@@ -72,6 +72,15 @@ public class CSSConverter {
             e.printStackTrace();
             System.exit(1);
         }
+        
+        float texMaxW=0;
+        float texMaxH=0;
+        
+        float[] texWidths = new float[m.faces.size()];
+        float[] texHeights = new float[m.faces.size()];
+        float[] faceWidths = new float[m.faces.size()];
+        float[] faceHeights = new float[m.faces.size()];
+        Matrix4x4[] matrices = new Matrix4x4[m.faces.size()];
         
         outString = "<div id=\"modelDiv\" style=\"left:150px;position:absolute;\">\n";
         
@@ -131,6 +140,8 @@ public class CSSConverter {
             float faceW = xMax - xMin;
             float faceH = yMax - yMin;
             sizeOfFace = new Vec2D(faceW, faceH);
+            faceWidths[i] = faceW;
+            faceHeights[i] = faceH;
             
             Vec2D aBUV = new Vec2D((aVertRotated.x-xMin)/faceW, 1-(aVertRotated.y-yMin)/faceH);
             Vec2D bBUV = new Vec2D((bVertRotated.x-xMin)/faceW, 1-(bVertRotated.y-yMin)/faceH);
@@ -167,13 +178,23 @@ public class CSSConverter {
             cBUV.scaleSelf(texW, texH);
             
             
+                texMaxW += texW;
+            if(texH>texMaxH)
+                texMaxH = texH;
+            
+            texWidths[i] = texW;
+            texHeights[i] = texH;
             //texture stuff, cut out images, deform triangles
             //get subimage(min, min, w, h)
+            if(texW<1)
+                texW += 1;
+            if(texH<1)
+                texH += 1;
             BufferedImage subTex = texture.getSubimage((int)texXMin, (int)texYMin, (int)texW, (int)texH);
             //send pixeldata and triangles to triangleWarper
             //System.out.print(i);
             
-            //save warped triangle image as png
+            //save warped triangle image
             if(savePics) {
                 BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
                 try {
@@ -209,10 +230,11 @@ public class CSSConverter {
                 }
             }
             
-            //round matrix values?
-            //make output string here!
+            matrices[i] = matrix.copy();
+            
+            //background-image: url("+"images_gifs/triangulated_"+i+".gif); 
             String imgTag = "<div id=\""+i+"\" ";
-            String style = "style=\"background-image: url("+"images_gifs/triangulated_"+i+".gif); background-size: contain; width: "+faceW+"px; height: "+faceH+"px; position: absolute; ";
+            String style = "style=\"background-size: 100% 100%; width: "+faceW+"px; height: "+faceH+"px; position: absolute; ";
             String webkit = "-webkit-transform: translate3d(-50%,-50%,0px) ";
             String matr = "matrix3d("+matrix.matrix[0][0]+", "+matrix.matrix[0][1]+", "+matrix.matrix[0][2]+", "+matrix.matrix[0][3]+", "
                                      +matrix.matrix[1][0]+", "+matrix.matrix[1][1]+", "+matrix.matrix[1][2]+", "+matrix.matrix[1][3]+", "
