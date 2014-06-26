@@ -27,14 +27,14 @@ public class CSSConverter {
     
     public static void main(String[] args) {
         
-        String modelPath = "src/model/vinflaska_obj_highpoly.obj";
+        String modelPath = "src/model/flaska.obj";
         //String texturePath = "src/model/vinflaska_textur.jpg";
         String texturePath = "src/model/vinflaska_textur_small.jpg";
         boolean savePics = false;
-        String picsPath = "src/model/images_gifs_highpoly";
+        String picsPath = "src/model";
         new File(picsPath).mkdirs();
         
-        String outPath = "src/model/flaska_highpoly.txt";
+        String outPath = "src/model/flaska.txt";
         String outString = "";
         
         int scale = 25;
@@ -81,6 +81,7 @@ public class CSSConverter {
         float[] faceWidths = new float[m.faces.size()];
         float[] faceHeights = new float[m.faces.size()];
         Matrix4x4[] matrices = new Matrix4x4[m.faces.size()];
+        BufferedImage[] warpedTriangles = new BufferedImage[m.faces.size()];
         
         outString = "<div id=\"modelDiv\" style=\"left:150px;position:absolute;\">\n";
         
@@ -178,7 +179,7 @@ public class CSSConverter {
             cBUV.scaleSelf(texW, texH);
             
             
-                texMaxW += texW;
+            texMaxW += texW;
             if(texH>texMaxH)
                 texMaxH = texH;
             
@@ -190,20 +191,15 @@ public class CSSConverter {
                 texW += 1;
             if(texH<1)
                 texH += 1;
-            BufferedImage subTex = texture.getSubimage((int)texXMin, (int)texYMin, (int)texW, (int)texH);
+            
             //send pixeldata and triangles to triangleWarper
             //System.out.print(i);
             
             //save warped triangle image
             if(savePics) {
-                BufferedImage warpedTex = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
-                try {
-                    File outputfile = new File(picsPath+"/triangulated_"+i+".gif");
-                    ImageIO.write(warpedTex, "gif", outputfile);
-                } 
-                catch (IOException e) {
-
-                }
+                BufferedImage subTex = texture.getSubimage((int)texXMin, (int)texYMin, (int)texW, (int)texH);
+                warpedTriangles[i] = WarpTriangle(subTex, new Vec2D[] {aLUV, bLUV, cLUV}, new Vec2D[] {aBUV, bBUV, cBUV});
+                
             }
             
             Vec3D dirToCenter = new Vec3D(0,0,0).sub(centerOfFace);
@@ -231,15 +227,42 @@ public class CSSConverter {
             }
             
             matrices[i] = matrix.copy();
+        }
+        
+        int nrOfRows = (int)Math.sqrt(texMaxW/Math.ceil(texMaxH));
+        int width = (int)texMaxW/nrOfRows;
+        int height = (nrOfRows+1)*(int)Math.ceil(texMaxH);
+        int currentRow = 0;
+        int rowWidth = 0;
+        BufferedImage finalImg = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        
+        for (int i = 0; i < m.faces.size(); i++) {
             
-            //background-image: url("+"images_gifs/triangulated_"+i+".gif); 
+            if(rowWidth+texWidths[i] > width)
+            {
+                currentRow++;
+                rowWidth = 0;
+            }
+            
+            int posX = rowWidth;
+            int posY = currentRow*(int)Math.ceil(texMaxH);
+            rowWidth += (int)Math.ceil(texWidths[i])+1;
+            
+            if(savePics) 
+                finalImg.getRaster().setDataElements(posX, posY, warpedTriangles[i].getRaster());
+            
+            float scaleX = (width/texWidths[i]);
+            float scaleY = (height/texHeights[i]);
+            
+            //background-image: url(triangulated_sheet.png); 
+            //background-size: "+texWidths[i]+"px "+texHeights[i]+"px; 
             String imgTag = "<div id=\""+i+"\" ";
-            String style = "style=\"background-size: 100% 100%; width: "+faceW+"px; height: "+faceH+"px; position: absolute; ";
+            String style = "style=\"background-image: url(triangulated_sheet.png); background-position: -"+posX+"px -"+posY+"px; background-size: "+scaleX*100+"% "+scaleY*100+"%; width: "+faceWidths[i]+"px; height: "+faceHeights[i]+"px; position: absolute; ";
             String webkit = "-webkit-transform: translate3d(-50%,-50%,0px) ";
-            String matr = "matrix3d("+matrix.matrix[0][0]+", "+matrix.matrix[0][1]+", "+matrix.matrix[0][2]+", "+matrix.matrix[0][3]+", "
-                                     +matrix.matrix[1][0]+", "+matrix.matrix[1][1]+", "+matrix.matrix[1][2]+", "+matrix.matrix[1][3]+", "
-                                     +matrix.matrix[2][0]+", "+matrix.matrix[2][1]+", "+matrix.matrix[2][2]+", "+matrix.matrix[2][3]+", "
-                                     +matrix.matrix[3][0]+", "+-matrix.matrix[3][1]+", "+matrix.matrix[3][2]+", "+matrix.matrix[3][3]+");";
+            String matr = "matrix3d("+matrices[i].matrix[0][0]+", "+matrices[i].matrix[0][1]+", "+matrices[i].matrix[0][2]+", "+matrices[i].matrix[0][3]+", "
+                                     +matrices[i].matrix[1][0]+", "+matrices[i].matrix[1][1]+", "+matrices[i].matrix[1][2]+", "+matrices[i].matrix[1][3]+", "
+                                     +matrices[i].matrix[2][0]+", "+matrices[i].matrix[2][1]+", "+matrices[i].matrix[2][2]+", "+matrices[i].matrix[2][3]+", "
+                                     +matrices[i].matrix[3][0]+", "+-matrices[i].matrix[3][1]+", "+matrices[i].matrix[3][2]+", "+matrices[i].matrix[3][3]+");";
             
             style += webkit + matr + "\"";
             String tempOut = imgTag + style + "></div>\n";
@@ -250,6 +273,16 @@ public class CSSConverter {
         outString += "</div>\n";
         
         writeToOutput(outPath, outString);
+        
+        if(savePics) {
+            try {
+                File outputfile = new File(picsPath+"/triangulated_sheet.png");
+                ImageIO.write(finalImg, "png", outputfile);
+            } 
+            catch (IOException e) {
+
+            }
+        }
     }
     
     public static void writeToOutput(String fileName, String string) {
