@@ -246,18 +246,26 @@ public class CSSConverter {
             
             int posX = rowWidth;
             int posY = currentRow*(int)Math.ceil(texMaxH);
-            rowWidth += (int)Math.ceil(texWidths[i])+1;
+            rowWidth += (int)Math.ceil(texWidths[i]);
             
             if(savePics) 
                 finalImg.getRaster().setDataElements(posX, posY, warpedTriangles[i].getRaster());
-            
+            /*
             float scaleX = (width/texWidths[i]);
             float scaleY = (height/texHeights[i]);
             
+            float relX = (float)posX/width;
+            float relY = (float)posY/height;
+            
+            float newW = scaleX*faceWidths[i];
+            float newH = scaleY*faceHeights[i];
+            */
+            //if(i==21)
+            //    scaleX += 0;
             //background-image: url(triangulated_sheet.png); 
             //background-size: "+texWidths[i]+"px "+texHeights[i]+"px; 
             String imgTag = "<div id=\""+i+"\" ";
-            String style = "style=\"background-image: url(triangulated_sheet.png); background-position: -"+posX+"px -"+posY+"px; background-size: "+scaleX*100+"% "+scaleY*100+"%; width: "+faceWidths[i]+"px; height: "+faceHeights[i]+"px; position: absolute; ";
+            String style = "style=\"background-position: "+posX+"px "+posY+"px; background-size: "+texWidths[i]+"px "+texHeights[i]+"px; width: "+faceWidths[i]+"px; height: "+faceHeights[i]+"px; position: absolute; ";
             String webkit = "-webkit-transform: translate3d(-50%,-50%,0px) ";
             String matr = "matrix3d("+matrices[i].matrix[0][0]+", "+matrices[i].matrix[0][1]+", "+matrices[i].matrix[0][2]+", "+matrices[i].matrix[0][3]+", "
                                      +matrices[i].matrix[1][0]+", "+matrices[i].matrix[1][1]+", "+matrices[i].matrix[1][2]+", "+matrices[i].matrix[1][3]+", "
