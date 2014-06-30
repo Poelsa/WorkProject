@@ -27,15 +27,17 @@ public class CSSConverter {
     
     public static void main(String[] args) {
         
-        String modelPath = "src/model/flaska.obj";
-        //String texturePath = "src/model/vinflaska_textur.jpg";
+        String modelPath = "src/model/decal.obj";
         String texturePath = "src/model/vinflaska_textur_small.jpg";
-        boolean savePics = false;
         String picsPath = "src/model";
         new File(picsPath).mkdirs();
-        
-        String outPath = "src/model/flaska.txt";
+        String name = "clickable";
+        String outPath = "src/model/"+name+".txt";
         String outString = "";
+        String onClickAction = "p212201LoadLink();";
+        
+        boolean savePics = false;
+        boolean makeClickable = true;
         
         int scale = 25;
         Vec2D sizeOfFace = new Vec2D();
@@ -45,9 +47,7 @@ public class CSSConverter {
         Quaternion flatToReal = new Quaternion();
         Quaternion flatToInvReal = new Quaternion();
          
-        //Change this, no hardcoded things plz =<
-        int texWidth = 1024;
-        int texHeight = 1024;
+        
         
         //Load obj file
         Model m = null;
@@ -72,6 +72,8 @@ public class CSSConverter {
             e.printStackTrace();
             System.exit(1);
         }
+        int texWidth = texture.getWidth();
+        int texHeight = texture.getHeight();
         
         float texMaxW=0;
         float texMaxH=0;
@@ -83,7 +85,9 @@ public class CSSConverter {
         Matrix4x4[] matrices = new Matrix4x4[m.faces.size()];
         BufferedImage[] warpedTriangles = new BufferedImage[m.faces.size()];
         
-        outString = "<div id=\"modelDiv\" style=\"left:150px;position:absolute;\">\n";
+        
+        
+        outString += "<div id='"+name+"' style='left:150px;position:absolute;'>\n";
         
         for (int i = 0; i < m.faces.size(); i++) {
             Face currentFace = m.faces.get(i);
@@ -264,15 +268,21 @@ public class CSSConverter {
             //    scaleX += 0;
             //background-image: url(triangulated_sheet.png); 
             //background-size: "+texWidths[i]+"px "+texHeights[i]+"px; 
-            String imgTag = "<div id=\""+i+"\" ";
-            String style = "style=\"background-position: "+posX+"px "+posY+"px; background-size: "+texWidths[i]+"px "+texHeights[i]+"px; width: "+faceWidths[i]+"px; height: "+faceHeights[i]+"px; position: absolute; ";
+            String style = "";
+            String imgTag = "<div id='"+name+"_"+i+"' ";
+            if(makeClickable) {
+                style += "onClick='"+onClickAction+"' style='width: "+faceWidths[i]+"px; height: "+faceHeights[i]+"px; position: absolute; ";
+            }
+            else {
+                style += "style='background-position: "+posX+"px "+posY+"px; background-size: "+texWidths[i]+"px "+texHeights[i]+"px; width: "+faceWidths[i]+"px; height: "+faceHeights[i]+"px; position: absolute; ";
+            }
             String webkit = "-webkit-transform: translate3d(-50%,-50%,0px) ";
             String matr = "matrix3d("+matrices[i].matrix[0][0]+", "+matrices[i].matrix[0][1]+", "+matrices[i].matrix[0][2]+", "+matrices[i].matrix[0][3]+", "
                                      +matrices[i].matrix[1][0]+", "+matrices[i].matrix[1][1]+", "+matrices[i].matrix[1][2]+", "+matrices[i].matrix[1][3]+", "
                                      +matrices[i].matrix[2][0]+", "+matrices[i].matrix[2][1]+", "+matrices[i].matrix[2][2]+", "+matrices[i].matrix[2][3]+", "
                                      +matrices[i].matrix[3][0]+", "+-matrices[i].matrix[3][1]+", "+matrices[i].matrix[3][2]+", "+matrices[i].matrix[3][3]+");";
             
-            style += webkit + matr + "\"";
+            style += webkit + matr + "'"; 
             String tempOut = imgTag + style + "></div>\n";
             
             outString += tempOut;
@@ -284,7 +294,7 @@ public class CSSConverter {
         
         if(savePics) {
             try {
-                File outputfile = new File(picsPath+"/triangulated_sheet.png");
+                File outputfile = new File(picsPath+"/triangulated_sheet_big.png");
                 ImageIO.write(finalImg, "png", outputfile);
             } 
             catch (IOException e) {
