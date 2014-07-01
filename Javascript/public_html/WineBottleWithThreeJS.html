@@ -16,17 +16,26 @@
             -webkit-animation-duration: 0.5s;
         }
         
+        .forward {
+            -webkit-animation-name: testBoxAnimation;
+        }
+        .back {
+            -webkit-animation-name: testBoxAnimationBack;
+        }
+        
         @-webkit-keyframes testBoxAnimation {
-            from{left:100px; top:100px; -webkit-transform: scale(0,0); }
-            to{left:150px; top:50px; -webkit-transform: scale(1,1); }
+            from{-webkit-transform: translate3d(-50px, -100px, 0) scale(0); }
+            to{-webkit-transform: translate3d(0px, -150px, 0) scale(1); }
         }
         @-webkit-keyframes testBoxAnimationBack {
-            from{left:150px; top:50px; -webkit-transform: scale(1,1); }
-            to{left:100px; top:100px; -webkit-transform: scale(0,0); }
+            from{-webkit-transform: translate3d(0px, -150px, 0) scale(1); }
+            to{-webkit-transform: translate3d(-50px, -100px, 0) scale(0); }
         }
         
         #model {
             -webkit-transition: all 0.5s ease-in-out; 
+            -webkit-backface-visibility:hidden;
+            -webkit-transform: scale(1);
         }
         </style>
    <body style="width:320px">
@@ -76,7 +85,7 @@
                         var pos = curDiv.style.backgroundPosition.split(' ');
                         
                         canv.width = parseInt(size[0]);
-                        canv.height = parseInt(size[1]); //parse int??
+                        canv.height = parseInt(size[1]); 
                         
                         var ctx = canv.getContext("2d");
                         
@@ -87,6 +96,7 @@
                         
                         
                         curDiv.style.backgroundImage = "url("+canv.toDataURL()+")";
+                        //curDiv.style.backgroundImage = "-webkit-canvas("+canv+")";
                         
                         curDiv.style.backgroundSize = "100% 100%";
                         curDiv.style.backgroundPosition = "0px 0px";
@@ -321,11 +331,11 @@
                 function toggleTestBox(){
                     if(testBoxVisible) {
                         var elem = document.getElementById("testBox");
-                        
+                        /*
                         var newOne = elem.cloneNode(true);
                         newOne.style.webkitAnimationName = "testBoxAnimationBack"
-                        elem.parentNode.replaceChild(newOne, elem);
-                        
+                        elem.parentNode.replaceChild(newOne, elem);*/
+                        elem.className = "back";
                         //Move bottle
                         document.getElementById("model").style.left = "150px";
                         document.getElementById("clickable").style.left = "150px";
@@ -335,11 +345,11 @@
                     else {
                         var elem = document.getElementById("testBox");
                         elem.style.visibility = "visible";
-                        
+                        /*
                         var newOne = elem.cloneNode(true);
                         newOne.style.webkitAnimationName = "testBoxAnimation"
-                        elem.parentNode.replaceChild(newOne, elem);
-                        
+                        elem.parentNode.replaceChild(newOne, elem);*/
+                        elem.className = "forward";
                         document.getElementById("model").style.left = "50px";
                         document.getElementById("clickable").style.left = "50px";
                         
@@ -348,6 +358,9 @@
                 }
                 
                 function p212201DeviceOrientationHandler(gyroData){
+                    
+                    //Put timer and boolean stuff here
+                    
                     var p212201Alpha = gyroData.alpha;
                     var p212201Beta = gyroData.beta;
                     var p212201Gamma = gyroData.gamma;
@@ -356,7 +369,7 @@
                         p212201OBeta = p212201Beta;
                         p212201OGamma = p212201Gamma;
                     }
-                    
+                    //Understand the values and apply them as a force instead of a vector to go to
                     var gyroAngX, gyroAngY;
                     if(p212201Gamma >= 90){
                         gyroAngX = p212201CorrectInterval(p212201OBeta + (90 - p212201Beta), p212201MaxGyroTilt);
