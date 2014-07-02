@@ -27,27 +27,26 @@ public class CSSConverter {
     
     public static void main(String[] args) {
         
-        String modelPath = "src/model/decal.obj";
-        String texturePath = "src/model/vinflaska_textur_small.jpg";
-        String picsPath = "src/model";
-        new File(picsPath).mkdirs();
-        String name = "clickable";
-        String outPath = "src/model/"+name+".txt";
+        String modelPath = "src/model/decal.obj"; //The model that will be loaded
+        String texturePath = "src/model/vinflaska_textur_small.jpg"; //The texture that will be loaded
+        String picsPath = "src/model"; //Where the new texture sheet will be saved. 
+        new File(picsPath).mkdirs();//NOTE: The outputed texture is unoptimized and is preferably run through a PNG compressor
+        String name = "clickable"; //The name of the div in the output file
+        String outPath = "src/model/"+name+".txt"; //Where the output file will be saved
         String outString = "";
-        String onClickAction = "p212201LoadLink();";
+        String onClickAction = "p212201LoadLink();"; //The function that will be called if the div is clickable
         
         boolean savePics = false;
         boolean makeClickable = true;
         
         int scale = 25;
-        Vec2D sizeOfFace = new Vec2D();
+        //Vec2D sizeOfFace = new Vec2D();
         Vec3D centerOfFace = new Vec3D();
         Vec3D triCenter = new Vec3D();
         Quaternion realToFlat = new Quaternion();
         Quaternion flatToReal = new Quaternion();
         Quaternion flatToInvReal = new Quaternion();
          
-        
         
         //Load obj file
         Model m = null;
@@ -84,7 +83,6 @@ public class CSSConverter {
         float[] faceHeights = new float[m.faces.size()];
         Matrix4x4[] matrices = new Matrix4x4[m.faces.size()];
         BufferedImage[] warpedTriangles = new BufferedImage[m.faces.size()];
-        
         
         
         outString += "<div id='"+name+"' style='top:250px;left:150px;position:absolute;-webkit-transform-style: preserve-3d;'>\n";
@@ -144,7 +142,7 @@ public class CSSConverter {
             
             float faceW = xMax - xMin;
             float faceH = yMax - yMin;
-            sizeOfFace = new Vec2D(faceW, faceH);
+            //sizeOfFace = new Vec2D(faceW, faceH);
             faceWidths[i] = faceW;
             faceHeights[i] = faceH;
             
@@ -294,7 +292,7 @@ public class CSSConverter {
         
         if(savePics) {
             try {
-                File outputfile = new File(picsPath+"/triangulated_sheet_big.png");
+                File outputfile = new File(picsPath+"/triangulated_sheet_big.png"); //Name and type of the texture sheet
                 ImageIO.write(finalImg, "png", outputfile);
             } 
             catch (IOException e) {

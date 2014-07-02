@@ -62,6 +62,9 @@
                 var p212201isAndroid = navigator.userAgent.toLowerCase().indexOf("android") > -1;
                 var p212201ActImg;
                 
+                var isiPhone = navigator.userAgent.toLowerCase().indexOf("iphone") > -1;
+                var isiPhone5 = ((window.innerWHeight > 0) ? window.innerWHeight : screen.height) == 568;
+                
                 var p212201MaxGyroTilt = 25;
                 
                 var testBoxVisible = false;
@@ -74,7 +77,7 @@
                 var gyroRotationX = 0;
                 var gyroRotationY = 0;
                 var touchRotSlowdown = 0.5;
-                var gyroRotSlowdown = 0.1;
+                var gyroRotSlowdown = 0.15;
     
                 var image = new Image();
                 image.src = "/WineBottleProject/triangulated_sheet.png";
@@ -130,7 +133,7 @@
                     p212201SwipeArea.addEventListener("touchstart", p212201TouchStart, false);
                     p212201SwipeArea.addEventListener("touchmove", p212201TouchMove, false);
                     p212201SwipeArea.addEventListener("touchend", p212201TouchEnd, false);
-                    if (window.DeviceOrientationEvent){
+                    if (window.DeviceOrientationEvent && isiPhone5){
                         window.addEventListener("deviceorientation", p212201DeviceOrientationHandler, false);
                     }
                 }
@@ -148,7 +151,7 @@
                     p212201StartY = e.touches[0].pageY;
                     p212201EndX = 0;
                     p212201EndY = 0;
-                    if (window.DeviceOrientationEvent){
+                    if (window.DeviceOrientationEvent && isiPhone5){
                         window.removeEventListener("deviceorientation", p212201DeviceOrientationHandler, false);
                     }
                 } 
@@ -167,15 +170,16 @@
                 function p212201TouchEnd(e)
                 {
                     isTouching = false;
+                    p212201OAlpha = undefined;
                     touchRotationX = 0;
                     touchRotationY = 0;
-                    if (Math.abs(p212201EndX)>20) {
+                    if (Math.abs(p212201EndX)>20 || Math.abs(p212201EndY)>20) {
                         document.getElementById("p212201_img_swipe").style.visibility="hidden";
                         document.getElementById("p212201_img_swipe").style.webkitTransform="translate3d(0px,0px,-150px)";
                         p212201RegSwipe ();
                     }
                     
-                    if (window.DeviceOrientationEvent){
+                    if (window.DeviceOrientationEvent && isiPhone5){
                         window.addEventListener("deviceorientation", p212201DeviceOrientationHandler, false);
                     }
                 }
@@ -224,12 +228,13 @@
                         testBoxVisible = true;
                     }
                 }
+                if(isiPhone5){
                 var willUpdateOrientationNextTick = false;
                 var timerID = setInterval(
                     function enableOrientationNextTick() {
                         willUpdateOrientationNextTick = true;
-                    }, 200);
-                
+                    }, 50);
+                }
                 var rotationID = setInterval(
                 function updateRotation() {
                     if(p212201Model) {
@@ -241,7 +246,7 @@
                         touchRotationY = 0;
                         
                     }
-                    else {
+                    else if(isiPhone5) {
                         
                         currentRotX = (currentRotX+gyroRotationX);
                         currentRotY = (currentRotY+gyroRotationY);
@@ -261,7 +266,7 @@
                     
                     
                 }
-                }, 33);
+                }, 16);
                 
                 function p212201DeviceOrientationHandler(gyroData){
                     
@@ -292,7 +297,7 @@
                         gyroAngX += 360;
                     if(gyroAngY < -0)
                         gyroAngY += 360;
-                    gyroRotationX = gyroAngY;
+                    gyroRotationX = -gyroAngY;
                     gyroRotationY = -gyroAngX;
                     
                     //p212201Model.style.webkitTransform = "rotateY(" + gyroAngY + "deg) rotateX(" + gyroAngX + "deg)"; 
