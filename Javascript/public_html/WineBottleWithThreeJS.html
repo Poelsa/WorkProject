@@ -62,17 +62,19 @@
                 var p212201isAndroid = navigator.userAgent.toLowerCase().indexOf("android") > -1;
                 var p212201ActImg;
                 
-                var p212201MaxGyroTilt = 90;
+                var p212201MaxGyroTilt = 25;
                 
                 var testBoxVisible = false;
                 
                 var isTouching = false;
-                var rotVelocityX = 0;
-                var rotVelocityY = 0;
+                var currentRotX = 0;
+                var currentRotY = 0;
                 var touchRotationX = 0;
                 var touchRotationY = 0;
                 var gyroRotationX = 0;
                 var gyroRotationY = 0;
+                var touchRotSlowdown = 0.5;
+                var gyroRotSlowdown = 0.1;
     
                 var image = new Image();
                 image.src = "/WineBottleProject/triangulated_sheet.png";
@@ -117,18 +119,8 @@
                     p212201SwipeArea = document.getElementById("p212201_revolve_area");
                     p212201Model = document.getElementById("theModelAndAllItsClickables");
                     p212201AddListener();
-                    p212201Rotate();
                     
                     document.getElementById("p212201_img_swipe").style.visibility="visible";
-                    
-                }
-                function p212201Rotate () {
-                    
-                    p212201ActImg = 4;
-                    
-                    
-                    p212201RotAng=p212201ActImg*(-90);               
-                    //p212201Model.style.webkitTransform="rotateY("+p212201RotAng+"deg) rotateX(-12deg)";
                     
                 }
                 
@@ -151,8 +143,7 @@
                 function p212201TouchStart(e)
                 {
                     isTouching = true;
-                    rotVelocityX = 0;
-                    rotVelocityY = 0;
+                    
                     p212201StartX = e.touches[0].pageX;
                     p212201StartY = e.touches[0].pageY;
                     p212201EndX = 0;
@@ -163,55 +154,26 @@
                 } 
                 function p212201TouchMove(e)
                 {
-                    //if (Math.abs(e.touches[0].pageX - p212201StartX) > Math.abs(e.touches[0].pageY - p212201StartY)) {
+                       
+                    touchRotationX += e.touches[0].pageX - p212201StartX - p212201EndX;
+                    touchRotationY += p212201StartY - e.touches[0].pageY - p212201EndY;
+
+                    e.preventDefault();
+                    p212201EndX = e.touches[0].pageX - p212201StartX;
+                    p212201EndY = p212201StartY - e.touches[0].pageY;
                         
-                        touchRotationX += e.touches[0].pageX - p212201StartX - p212201EndX;
-                        touchRotationY += p212201StartY - e.touches[0].pageY - p212201EndY;
-                        
-                        e.preventDefault();
-                        p212201EndX = e.touches[0].pageX - p212201StartX;
-                        p212201EndY = p212201StartY - e.touches[0].pageY;
-                        
-                        
-                        //p212201Model.style.webkitTransform="rotateY("+(p212201RotAng+p212201EndX)+"deg)";
-                        //p212201RotX.style.webkitTransform="rotateX("+p212201EndY+"deg)";
-                        
-                    //}
-                    /*else {
-                        p212201EndY = e.touches[0].pageY - p212201StartY;
-                    }*/
                 }
                 
                 function p212201TouchEnd(e)
                 {
                     isTouching = false;
-                    rotVelocityX = touchRotationX;
-                    rotVelocityY = touchRotationY;
-                    if (Math.abs(p212201EndX)>45) {
+                    touchRotationX = 0;
+                    touchRotationY = 0;
+                    if (Math.abs(p212201EndX)>20) {
                         document.getElementById("p212201_img_swipe").style.visibility="hidden";
                         document.getElementById("p212201_img_swipe").style.webkitTransform="translate3d(0px,0px,-150px)";
                         p212201RegSwipe ();
-                       
-                        /*
-                        if (p212201EndX>=0) 
-                            p212201RotAng=(p212201RotAng + (90 * Math.round((p212201EndX/90))));
-                        else if (p212201EndX<0)
-                            p212201RotAng=(p212201RotAng + (90 * Math.round((p212201EndX/90))));
-                        *//*
-                        if (p212201EndX>=0) 
-                            p212201RotAng=(p212201RotAng + (90));
-                        else if (p212201EndX<0)
-                            p212201RotAng=(p212201RotAng - (90));
-                        */
                     }
-                    /*if (Math.abs(p212201EndY)>45) {
-                        if (p212201EndY>=0) 
-                            p212201Model.style.webkitTransform="rotateX(90deg)";
-                        else if (p212201EndY<0)
-                            p212201Model.style.webkitTransform="rotateX(-90deg)";
-                    }*/
-                    //p212201Model.style.webkitTransform="rotateY("+p212201RotAng+"deg)";
-                    
                     
                     if (window.DeviceOrientationEvent){
                         window.addEventListener("deviceorientation", p212201DeviceOrientationHandler, false);
@@ -248,8 +210,7 @@
                         
                         elem.className = "back";
                         //Move div containing bottle instead!!
-                        document.getElementById("model").style.left = "150px";
-                        document.getElementById("clickable").style.left = "150px";
+                        p212201Model.style.left = "0px";
                         
                         testBoxVisible = false;
                     }
@@ -258,9 +219,7 @@
                         elem.style.visibility = "visible";
                         
                         elem.className = "forward";
-                        
-                        document.getElementById("model").style.left = "50px";
-                        document.getElementById("clickable").style.left = "50px";
+                        p212201Model.style.left = "-100px";
                         
                         testBoxVisible = true;
                     }
@@ -273,37 +232,44 @@
                 
                 var rotationID = setInterval(
                 function updateRotation() {
-                    
+                    if(p212201Model) {
                     if(isTouching) {
                         
-                        p212201Model.style.webkitTransform = "rotateY("+touchRotationX+"deg) rotateX("+touchRotationY+"deg)";
+                        currentRotX = currentRotX+touchRotationX*touchRotSlowdown;
+                        currentRotY = currentRotY+touchRotationY*touchRotSlowdown;
+                        touchRotationX = 0;
+                        touchRotationY = 0;
                         
                     }
                     else {
                         
-                        //Update gyro rotation here
+                        currentRotX = (currentRotX+gyroRotationX);
+                        currentRotY = (currentRotY+gyroRotationY);
                         
-                        var reductionValue = 1;
-                        if(rotVelocityX < 0)
-                            rotVelocityX -= reductionValue;
-                        if(rotVelocityX > 0)
-                            rotVelocityX += reductionValue;
-                        if(rotVelocityY < 0)
-                            rotVelocityY -= reductionValue;
-                        if(rotVelocityY > 0)
-                            rotVelocityY += reductionValue;
                     }
                     
-                }, 100);
+                    if(currentRotX > 360)
+                        currentRotX -= 360;
+                    if(currentRotY > 360)
+                        currentRotY -= 360;
+                    if(currentRotX < -0)
+                        currentRotX += 360;
+                    if(currentRotY < -0)
+                        currentRotY += 360;
+                    
+                    p212201Model.style.webkitTransform = "rotateY("+currentRotX+"deg) rotateX("+currentRotY+"deg)";
+                    
+                    
+                }
+                }, 33);
                 
                 function p212201DeviceOrientationHandler(gyroData){
                     
                     //Put timer and boolean stuff here
                     if(willUpdateOrientationNextTick){
-                    
-                    var p212201Alpha = gyroData.alpha;
-                    var p212201Beta = gyroData.beta;
-                    var p212201Gamma = gyroData.gamma;
+                    var p212201Alpha = gyroData.alpha*gyroRotSlowdown;
+                    var p212201Beta = gyroData.beta*gyroRotSlowdown;
+                    var p212201Gamma = gyroData.gamma*gyroRotSlowdown;
                     if(typeof p212201OAlpha === 'undefined'){ //Setting "start" values
                         p212201OAlpha = p212201Alpha;
                         p212201OBeta = p212201Beta;
@@ -312,12 +278,23 @@
                     //Understand the values and apply them as a force instead of a vector to go to
                     var gyroAngX, gyroAngY;
                     if(p212201Gamma >= 90){
-                        gyroAngX = p212201CorrectInterval(p212201OBeta + (90 - p212201Beta), p212201MaxGyroTilt);
+                        gyroAngX = p212201CorrectInterval(p212201OBeta + ( - p212201Beta), p212201MaxGyroTilt);
                         gyroAngY = (p212201RotAng + p212201CorrectInterval((180 - p212201Gamma - p212201OGamma), p212201MaxGyroTilt));
                     } else {
                         gyroAngX = p212201CorrectInterval((p212201Beta - p212201OBeta), p212201MaxGyroTilt); 
                         gyroAngY = (p212201RotAng - p212201CorrectInterval((p212201Gamma - p212201OGamma), p212201MaxGyroTilt));
                     }
+                    if(gyroAngX > 360)
+                        gyroAngX -= 360;
+                    if(gyroAngY > 360)
+                        gyroAngY -= 360;
+                    if(gyroAngX < -0)
+                        gyroAngX += 360;
+                    if(gyroAngY < -0)
+                        gyroAngY += 360;
+                    gyroRotationX = gyroAngY;
+                    gyroRotationY = -gyroAngX;
+                    
                     //p212201Model.style.webkitTransform = "rotateY(" + gyroAngY + "deg) rotateX(" + gyroAngX + "deg)"; 
                     
                     willUpdateOrientationNextTick = false;
@@ -343,7 +320,7 @@
                     <div id="p212201_revolve_area" style="position:absolute;top:0px;left:0px;width:320px;height:320px;margin:0px;padding:0px;z-index:180;-webkit-perspective: 800;-webkit-transform-style: preserve-3d;-webkit-transform: translate3d(0px,0px,100px);">
                         <img id="p212201_img_swipe" src="http://pliing.se/img/swipe.png" style="display:block;margin:0px;padding:0px;z-index:110;position:absolute;top:120px;left:98px;width:124px;height:40px;visibility:hidden;-webkit-transform: translate3d(0px,0px,50px);" onload="p212201InitBanner();" />
                         <div  id="p212201_cube_area" style="margin:0px;padding:0px;z-index:100;position:absolute;top:10px;left:10px;width:300px;height:300px;-webkit-transform-style: preserve-3d;-webkit-transform: translate3d(0px,0px,-49px);">
-                            <div id="theModelAndAllItsClickables" style="margin:0px;padding:0px;z-index:100;position:absolute;top:0px;left:0px;width:300px;height:300px;-webkit-transition: -webkit-transform 0.2s ease-out;-webkit-transform-style: preserve-3d;">
+                            <div id="theModelAndAllItsClickables" style="margin:0px;padding:0px;z-index:100;position:absolute;top:0px;left:0px;width:300px;height:300px;-webkit-transition: left 0.5s ease-in-out; -webkit-transform-style: preserve-3d;">
 <div id='model' style='top:250px;left:150px;position:absolute; -webkit-transform-style: preserve-3d;'>
 <div id='model_0' style='background-position: 0px 0px; background-size: 187.49438px 146.63678px; width: 24.044676px; height: 29.025743px; position: absolute; -webkit-transform: translate3d(-50%,-50%,0px) matrix3d(-0.3826372602263217, -0.0018532925118990256, -0.9257503600451348, 0.0, -0.9238586898126421, 0.01006956774695705, 0.3833688646617788, 0.0, 0.008611410856246948, 1.0019537210464478, -0.005565166473388672, 0.0, -11.362759590148926, -1.2550933361053467, 5.883869171142578, 1.0);'></div>
 <div id='model_1' style='background-position: 188px 0px; background-size: 67.4816px 10.342407px; width: 24.845768px; height: 5.8017263px; position: absolute; -webkit-transform: translate3d(-50%,-50%,0px) matrix3d(0.3819898152840815, 0.0, 0.9251986966279558, 0.0, 0.30801611997640554, 0.9427907424881449, -0.1277029005275461, 0.0, -0.8722996711730957, 0.33375731110572815, 0.3600619435310364, 0.0, -24.686819076538086, -3.7025461196899414, 11.792574882507324, 1.0);'></div>
@@ -476,7 +453,7 @@
 <div id='model_128' style='background-position: 204px 1555px; background-size: 67.48157px 105.36963px; width: 9.929951px; height: 16.600586px; position: absolute; -webkit-transform: translate3d(-50%,-50%,0px) matrix3d(-0.3851190172690174, 0.0, 0.9250587641652218, 0.0, -0.04594434200203217, 0.9987626448707351, -0.019080147497323348, 0.0, -0.9239116907119751, -0.04984934255480766, -0.38464832305908203, 0.0, -9.129094123840332, -219.50950622558594, -3.7850682735443115, 1.0);'></div>
 <div id='model_129' style='background-position: 272px 1555px; background-size: 95.12958px 119.29602px; width: 9.58771px; height: 11.611717px; position: absolute; -webkit-transform: translate3d(-50%,-50%,0px) matrix3d(-0.3830050685517411, -0.0019361537208004431, 0.9256750414360342, 0.0, -0.9166155641678029, 0.12480873628159825, -0.3805815937316648, 0.0, -0.11479546874761581, -0.9942528009414673, -0.04957711696624756, 0.0, -3.818932294845581, -227.990966796875, -1.4174343347549438, 1.0);'></div>
 </div>
-<div id='clickable' style='top:250px;left:150px;position:absolute;'>
+<div id='clickable' style='top:250px;left:150px;position:absolute;-webkit-transform-style: preserve-3d;'>
 <div id='clickable_0' onClick='toggleTestBox();' style='width: 25.681618px; height: 84.287315px; position: absolute; -webkit-transform: translate3d(-50%,-50%,0px) matrix3d(0.9246900081634521, 0.0, 0.3806869089603424, 0.0, 0.0, 0.999998152256012, -0.0018811176996678114, 0.0, -0.3806869089603424, 0.0018811176996678114, 0.9246881604194641, 0.0, -9.930447578430176, -54.048614501953125, 28.577796936035156, 1.0);'></div>
 <div id='clickable_1' onClick='toggleTestBox();' style='width: 25.781925px; height: 84.28742px; position: absolute; -webkit-transform: translate3d(-50%,-50%,0px) matrix3d(0.924714207649231, 0.0, 0.3806281089782715, 0.0, 0.0, 0.999998152256012, -0.0019004321657121181, 0.0, -0.3806281089782715, 0.0019004321657121181, 0.9247123003005981, 0.0, -9.942610740661621, -53.936256408691406, 28.572635650634766, 1.0);'></div>
 <div id='clickable_2' onClick='toggleTestBox();' style='width: 25.716341px; height: 84.27765px; position: absolute; -webkit-transform: translate3d(-50%,-50%,0px) matrix3d(0.924689824011302, 0.0, -0.38068750873717666, 0.0, 0.0, 0.9999982216878132, -0.0017577366681903175, 0.0, 0.38068687915802, 0.0018891753861680627, 0.9246881604194641, 0.0, 12.400389671325684, -54.0482177734375, 28.567058563232422, 1.0);'></div>

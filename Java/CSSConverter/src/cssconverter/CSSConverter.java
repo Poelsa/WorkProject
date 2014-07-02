@@ -87,7 +87,7 @@ public class CSSConverter {
         
         
         
-        outString += "<div id='"+name+"' style='left:150px;position:absolute;'>\n";
+        outString += "<div id='"+name+"' style='top:250px;left:150px;position:absolute;-webkit-transform-style: preserve-3d;'>\n";
         
         for (int i = 0; i < m.faces.size(); i++) {
             Face currentFace = m.faces.get(i);
